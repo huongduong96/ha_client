@@ -91,7 +91,6 @@ class HomeAssistant {
       "device_name": "$userName's ${Device().model}",
       "manufacturer": Device().manufacturer,
       "model": Device().model,
-      "os_name": Device().osName,
       "os_version": Device().osVersion,
       "app_data": {
         "push_token": "$fcmToken",
