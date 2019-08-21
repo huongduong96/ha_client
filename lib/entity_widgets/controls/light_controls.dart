@@ -17,7 +17,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   String _tmpEffect;
 
   void _resetState(LightEntity entity) {
-    _tmpBrightness = entity.brightness ?? 0;
+    _tmpBrightness = entity.brightness ?? 1;
     _tmpWhiteValue = entity.whiteValue ?? 0;
     _tmpColorTemp = entity.colorTemp ?? entity.minMireds?.toInt();
     _tmpColor = entity.color ?? _tmpColor;
@@ -28,15 +28,9 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     setState(() {
       _tmpBrightness = value.round();
       _changedHere = true;
-      if (_tmpBrightness > 0) {
-        eventBus.fire(new ServiceCallEvent(
-            entity.domain, "turn_on", entity.entityId,
-            {"brightness": _tmpBrightness}));
-      } else {
-        eventBus.fire(new ServiceCallEvent(
-            entity.domain, "turn_off", entity.entityId,
-            null));
-      }
+      eventBus.fire(new ServiceCallEvent(
+          entity.domain, "turn_on", entity.entityId,
+          {"brightness": _tmpBrightness}));
     });
   }
 
@@ -114,10 +108,10 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
             _tmpBrightness = value.round();
           });
         },
-        min: 0.0,
+        min: 1.0,
         max: 255.0,
         onChangeEnd: (value) => _setBrightness(entity, value),
-        value: _tmpBrightness == null ? 0.0 : _tmpBrightness.toDouble(),
+        value: _tmpBrightness == null ? 1.0 : _tmpBrightness.toDouble(),
         leading: Icon(Icons.brightness_5),
         title: "Brightness",
       );
