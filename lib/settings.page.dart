@@ -56,6 +56,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     if (_newHassioDomain.indexOf("http") == 0 && _newHassioDomain.indexOf("//") > 0) {
       _newHassioDomain = _newHassioDomain.split("//")[1];
     }
+    _newHassioDomain = _newHassioDomain.split("/")[0];
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("hassio-domain", _newHassioDomain);
     prefs.setString("hassio-port", _newHassioPort);
