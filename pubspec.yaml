@@ -18,6 +18,7 @@ dependencies:
   date_format: any
   charts_flutter: any
   flutter_markdown: any
+  in_app_purchase: ^0.2.1
 #  flutter_svg: ^0.10.3
   flutter_custom_tabs: ^0.6.0
   firebase_messaging: ^4.0.0+1

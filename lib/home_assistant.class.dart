@@ -107,6 +107,7 @@ class HomeAssistant {
       registrationData.addAll({
         "app_id": "ha_client",
         "app_name": "$appName",
+        "os_name": Device().osName,
         "supports_encryption": false,
       });
       Connection().sendHTTPPost(

@@ -22,6 +22,7 @@ import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -175,6 +176,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver, TickerProviderStateMixin {
 
+  StreamSubscription<List<PurchaseDetails>> _subscription;
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
@@ -188,6 +190,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   @override
   void initState() {
+    final Stream purchaseUpdates =
+        InAppPurchaseConnection.instance.purchaseUpdatedStream;
+    _subscription = purchaseUpdates.listen((purchases) {
+      _handlePurchaseUpdates(purchases);
+    });
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
@@ -293,6 +300,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     if (state == AppLifecycleState.resumed && Connection().settingsLoaded) {
       _quickLoad();
     }
+  }
+  
+  void _handlePurchaseUpdates(purchases) {
+    Logger.d('Handling purchases...');
   }
 
   Future _subscribe() {
