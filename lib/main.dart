@@ -86,6 +86,7 @@ part 'entity_widgets/controls/media_player_widgets.dart';
 part 'entity_widgets/controls/fan_controls.dart';
 part 'entity_widgets/controls/alarm_control_panel_controls.dart';
 part 'settings.page.dart';
+part 'purchase.page.dart';
 part 'panel.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
@@ -148,6 +149,7 @@ class HAClientApp extends StatelessWidget {
         "/": (context) => MainPage(title: 'HA Client', homeAssistant: homeAssistant,),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
         "/configuration": (context) => PanelPage(title: "Configuration"),
+        "/putchase": (context) => PurchasePage(title: "Support app development"),
         "/log-view": (context) => LogViewPage(title: "Log"),
         "/login": (_) => WebviewScaffold(
           url: "${Connection().oauthUrl}",
@@ -533,6 +535,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
         Divider(),
         new ListTile(
+          leading: Icon(Icons.insert_drive_file),
+          title: Text("Support app development"),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed('/putchase');
+          },
+        ),
+        Divider(),
+        new ListTile(
           leading: Icon(Icons.help),
           title: Text("Help"),
           onTap: () {
@@ -872,6 +883,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showEntityPageSubscription?.cancel();
     _showErrorSubscription?.cancel();
     _startAuthSubscription?.cancel();
+    _subscription?.cancel();
     _reloadUISubscription?.cancel();
     //TODO disconnect
     //widget.homeAssistant?.disconnect();
