@@ -86,7 +86,10 @@ part 'entity_widgets/controls/media_player_widgets.dart';
 part 'entity_widgets/controls/fan_controls.dart';
 part 'entity_widgets/controls/alarm_control_panel_controls.dart';
 part 'settings.page.dart';
-part 'purchase.page.dart';
+part 'pages/purchase.page.dart';
+part 'pages/widgets/product_purchase.widget.dart';
+part 'pages/widgets/page_loading_indicator.dart';
+part 'pages/widgets/page_loading_error.dart';
 part 'panel.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
@@ -185,7 +188,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _showEntityPageSubscription;
   StreamSubscription _showErrorSubscription;
   StreamSubscription _startAuthSubscription;
-  StreamSubscription _showDialogSubscription;
+  StreamSubscription _showPopupDialogSubscription;
+  StreamSubscription _showPopupMessageSubscription;
   StreamSubscription _reloadUISubscription;
   int _previousViewCount;
   bool _showLoginButton = false;
@@ -304,8 +308,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
   }
   
-  void _handlePurchaseUpdates(purchases) {
-    Logger.d('Handling purchases...');
+  void _handlePurchaseUpdates(purchase) {
+    if (purchase is List<PurchaseDetails>) {
+      if (purchase[0].status == PurchaseStatus.purchased) {
+        eventBus.fire(ShowPopupMessageEvent(
+            title: "Thanks a lot!",
+            body: "Thank you for supporting HA Client development!",
+            buttonText: "Ok"
+        ));
+      }
+    } else {
+      Logger.e("Something wrong with purchase handling. Got: $purchase");
+    }
   }
 
   Future _subscribe() {
@@ -325,15 +339,26 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         _quickLoad();
       });
     }
-    if (_showDialogSubscription == null) {
-      _showDialogSubscription = eventBus.on<ShowDialogEvent>().listen((event){
-        _showDialog(
+    if (_showPopupDialogSubscription == null) {
+      _showPopupDialogSubscription = eventBus.on<ShowPopupDialogEvent>().listen((event){
+        _showPopupDialog(
           title: event.title,
           body: event.body,
           onPositive: event.onPositive,
           onNegative: event.onNegative,
           positiveText: event.positiveText,
           negativeText: event.negativeText
+        );
+      });
+    }
+    if (_showPopupMessageSubscription == null) {
+      _showPopupMessageSubscription = eventBus.on<ShowPopupMessageEvent>().listen((event){
+        _showPopupDialog(
+            title: event.title,
+            body: event.body,
+            onPositive: event.onButtonClick,
+            positiveText: event.buttonText,
+            negativeText: null
         );
       });
     }
@@ -393,7 +418,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
   }
 
-  void _showDialog({String title, String body, var onPositive, var onNegative, String positiveText, String negativeText}) {
+  void _showPopupDialog({String title, String body, var onPositive, var onNegative, String positiveText, String negativeText}) {
     List<Widget> buttons = [];
     buttons.add(FlatButton(
       child: new Text("$positiveText"),
@@ -535,7 +560,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
         Divider(),
         new ListTile(
-          leading: Icon(Icons.insert_drive_file),
+          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:food")),
           title: Text("Support app development"),
           onTap: () {
             Navigator.of(context).pop();
@@ -879,7 +904,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _stateSubscription?.cancel();
     _settingsSubscription?.cancel();
     _serviceCallSubscription?.cancel();
-    _showDialogSubscription?.cancel();
+    _showPopupDialogSubscription?.cancel();
+    _showPopupMessageSubscription?.cancel();
     _showEntityPageSubscription?.cancel();
     _showErrorSubscription?.cancel();
     _startAuthSubscription?.cancel();

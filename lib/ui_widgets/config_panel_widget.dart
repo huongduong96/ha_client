@@ -256,7 +256,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   restart() {
-    eventBus.fire(ShowDialogEvent(
+    eventBus.fire(ShowPopupDialogEvent(
       title: "Are you sure you want to restart Home Assistant?",
       body: "This will restart your Home Assistant server.",
       positiveText: "Sure. Make it so",
@@ -268,7 +268,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   stop() {
-    eventBus.fire(ShowDialogEvent(
+    eventBus.fire(ShowPopupDialogEvent(
       title: "Are you sure you wanr to STOP Home Assistant?",
       body: "This will STOP your Home Assistant server. It means that your web interface as well as HA Client will not work untill you'll find a way to start your server using ssh or something.",
       positiveText: "Sure. Make it so",
@@ -284,7 +284,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   resetRegistration() {
-    eventBus.fire(ShowDialogEvent(
+    eventBus.fire(ShowPopupDialogEvent(
       title: "Waaaait",
       body: "If you don't whant to have duplicate integrations and entities in your HA for your current device, first you need to remove MobileApp integration from Integration settings in HA and restart server.",
       positiveText: "Done it already",

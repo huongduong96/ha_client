@@ -121,7 +121,7 @@ class HomeAssistant {
               prefs.setString("app-webhook-id", responseObject["webhook_id"]);
               Connection().webhookId = responseObject["webhook_id"];
               completer.complete();
-              eventBus.fire(ShowDialogEvent(
+              eventBus.fire(ShowPopupDialogEvent(
                 title: "Mobile app Integration was created",
                 body: "HA Client was registered as MobileApp in your Home Assistant. To start using notifications you need to restart your Home Assistant",
                 positiveText: "Restart now",
@@ -149,7 +149,7 @@ class HomeAssistant {
       ).then((response) {
         Logger.d("App registration works fine");
         if (showOkDialog) {
-          eventBus.fire(ShowDialogEvent(
+          eventBus.fire(ShowPopupDialogEvent(
             title: "All good",
             body: "HA Client integration with your Home Assistant server works fine",
             positiveText: "Nice!",
@@ -160,7 +160,7 @@ class HomeAssistant {
       }).catchError((e) {
         if (e['code'] != null && e['code'] == 410) {
           Logger.e("MobileApp integration was removed");
-          eventBus.fire(ShowDialogEvent(
+          eventBus.fire(ShowPopupDialogEvent(
             title: "App integration was removed",
             body: "Looks like app integration was removed from your Home Assistant. HA Client needs to be registered on your Home Assistant server to make it possible to use notifications and other useful stuff.",
             positiveText: "Register now",
@@ -175,7 +175,7 @@ class HomeAssistant {
           ));
         } else {
           Logger.e("Error updating app registration: ${e.toString()}");
-          eventBus.fire(ShowDialogEvent(
+          eventBus.fire(ShowPopupDialogEvent(
             title: "App integration is not working properly",
             body: "Something wrong with HA Client integration on your Home Assistant server. Try to remove current app integration from Configuration -> Integrationds using web UI, restart your Home Assistant and go back to the app. NOTE that after clicking 'Ok' current integration data will be removed from the app and new integration wll be created on Home Assistant side on next app launch.",
             positiveText: "Ok",

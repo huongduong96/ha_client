@@ -173,7 +173,7 @@ class ServiceCallEvent {
   ServiceCallEvent(this.domain, this.service, this.entityId, this.additionalParams);
 }
 
-class ShowDialogEvent {
+class ShowPopupDialogEvent {
   final String title;
   final String body;
   final String positiveText;
@@ -181,7 +181,16 @@ class ShowDialogEvent {
   final  onPositive;
   final  onNegative;
 
-  ShowDialogEvent({this.title, this.body, this.positiveText: "Ok", this.negativeText: "Cancel", this.onPositive, this.onNegative});
+  ShowPopupDialogEvent({this.title, this.body, this.positiveText: "Ok", this.negativeText: "Cancel", this.onPositive, this.onNegative});
+}
+
+class ShowPopupMessageEvent {
+  final String title;
+  final String body;
+  final String buttonText;
+  final  onButtonClick;
+
+  ShowPopupMessageEvent({this.title, this.body, this.buttonText: "Ok", this.onButtonClick});
 }
 
 class ShowEntityPageEvent {
