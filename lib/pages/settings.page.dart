@@ -16,10 +16,13 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _newHassioPort = "";
   String _socketProtocol = "wss";
   String _newSocketProtocol = "wss";
+  String _longLivedToken = "";
+  String _newLongLivedToken = "";
   bool _useLovelace = true;
   bool _newUseLovelace = true;
 
   String oauthUrl;
+  bool useOAuth = false;
 
   @override
   void initState() {
@@ -30,6 +33,23 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
 
   _loadSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storage = new FlutterSecureStorage();
+
+    try {
+      useOAuth = prefs.getBool("oauth-used") ?? true;
+    } catch (e) {
+      useOAuth = true;
+    }
+
+    if (!useOAuth) {
+      try {
+        _longLivedToken = _newLongLivedToken =
+        await storage.read(key: "hacl_llt");
+      } catch (e) {
+        _longLivedToken = _newLongLivedToken = "";
+        await storage.delete(key: "hacl_llt");
+      }
+    }
 
     setState(() {
       _hassioDomain = _newHassioDomain = prefs.getString("hassio-domain")?? "";
@@ -48,7 +68,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       (_newHassioPort != _hassioPort) ||
       (_newHassioDomain != _hassioDomain) ||
       (_newSocketProtocol != _socketProtocol) ||
-      (_newUseLovelace != _useLovelace));
+      (_newUseLovelace != _useLovelace) ||
+      (_newLongLivedToken != _longLivedToken));
 
   }
 
@@ -58,6 +79,13 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     }
     _newHassioDomain = _newHassioDomain.split("/")[0];
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storage = new FlutterSecureStorage();
+    if (_newLongLivedToken.isNotEmpty) {
+      prefs.setBool("oauth-used", false);
+      await storage.write(key: "hacl_llt", value: _newLongLivedToken);
+    } else if (!useOAuth) {
+      await storage.delete(key: "hacl_llt");
+    }
     prefs.setString("hassio-domain", _newHassioDomain);
     prefs.setString("hassio-port", _newHassioPort);
     prefs.setString("hassio-protocol", _newSocketProtocol);
@@ -171,6 +199,33 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
                 },
               )
             ],
+          ),
+          Text(
+            "Authentication settings",
+            style: TextStyle(
+                color: Colors.black45,
+                fontSize: 20.0
+            ),
+          ),
+          Container(height: 10.0,),
+          Text(
+            "You can leave this field blank to make app generate new long-lived token automatically by asking you to login to your Home Assistant. Use this field only if you still want to use manually generated long-lived token. Leave it blank if you don't understand what we are talking about.",
+            style: TextStyle(color: Colors.redAccent),
+          ),
+          new TextField(
+              decoration: InputDecoration(
+                  labelText: "Long-lived token"
+              ),
+              controller: new TextEditingController.fromValue(
+                  new TextEditingValue(
+                      text: _newLongLivedToken ?? '',
+                      selection:
+                      new TextSelection.collapsed(offset: _newLongLivedToken != null ? _newLongLivedToken.length : 0)
+                  )
+              ),
+              onChanged: (value) {
+                _newLongLivedToken = value;
+              }
           ),
         ],
       ),

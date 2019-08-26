@@ -155,14 +155,23 @@ class HAClientApp extends StatelessWidget {
         "/configuration": (context) => PanelPage(title: "Configuration"),
         "/putchase": (context) => PurchasePage(title: "Support app development"),
         "/log-view": (context) => LogViewPage(title: "Log"),
-        "/login": (_) => WebviewScaffold(
+        "/login": (context) => WebviewScaffold(
           url: "${Connection().oauthUrl}",
           appBar: new AppBar(
             leading: IconButton(
                 icon: Icon(Icons.help),
                 onPressed: () => HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/docs#authentication")
             ),
-            title: new Text("Login to your Home Assistant"),
+            title: new Text("Login with HA"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Manual", style: TextStyle(color: Colors.white)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushNamed("/connection-settings");
+                },
+              )
+            ],
           ),
         )
       },

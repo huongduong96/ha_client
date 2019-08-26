@@ -303,7 +303,10 @@ class Connection {
       _tempToken = null;
       final storage = new FlutterSecureStorage();
       storage.write(key: "hacl_llt", value: "$_token").then((_) {
-        completer.complete();
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool("oauth-used", true);
+          completer.complete();
+        });
       }).catchError((e) {
         throw e;
       });
