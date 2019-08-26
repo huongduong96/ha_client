@@ -147,45 +147,37 @@ class HomeAssistant {
           includeAuthHeader: false,
           data: json.encode(updateData)
       ).then((response) {
-        Logger.d("App registration works fine");
-        if (showOkDialog) {
-          eventBus.fire(ShowPopupDialogEvent(
-            title: "All good",
-            body: "HA Client integration with your Home Assistant server works fine",
-            positiveText: "Nice!",
-            negativeText: "Ok"
-          ));
+        if (response == null || response.isEmpty) {
+          Logger.d("No registration data in response. MobileApp integration was removed");
+          _askToRegisterApp();
+        } else {
+          Logger.d("App registration works fine");
+          if (showOkDialog) {
+            eventBus.fire(ShowPopupDialogEvent(
+                title: "All good",
+                body: "HA Client integration with your Home Assistant server works fine",
+                positiveText: "Nice!",
+                negativeText: "Ok"
+            ));
+          }
         }
         completer.complete();
       }).catchError((e) {
         if (e['code'] != null && e['code'] == 410) {
           Logger.e("MobileApp integration was removed");
-          eventBus.fire(ShowPopupDialogEvent(
-            title: "App integration was removed",
-            body: "Looks like app integration was removed from your Home Assistant. HA Client needs to be registered on your Home Assistant server to make it possible to use notifications and other useful stuff.",
-            positiveText: "Register now",
-            negativeText: "Cancel",
-            onPositive: () {
-              SharedPreferences.getInstance().then((prefs) {
-                prefs.remove("app-webhook-id");
-                Connection().webhookId = null;
-                HomeAssistant().checkAppRegistration();
-              });
-            },
-          ));
+          _askToRegisterApp();
         } else {
           Logger.e("Error updating app registration: ${e.toString()}");
           eventBus.fire(ShowPopupDialogEvent(
             title: "App integration is not working properly",
-            body: "Something wrong with HA Client integration on your Home Assistant server. Try to remove current app integration from Configuration -> Integrationds using web UI, restart your Home Assistant and go back to the app. NOTE that after clicking 'Ok' current integration data will be removed from the app and new integration wll be created on Home Assistant side on next app launch.",
-            positiveText: "Ok",
-            negativeText: "I'll handle it",
+            body: "Something wrong with HA Client integration on your Home Assistant server. Please report this issue.",
+            positiveText: "Report to GitHub",
+            negativeText: "Report to Discord",
             onPositive: () {
-              SharedPreferences.getInstance().then((prefs) {
-                prefs.remove("app-webhook-id");
-                Connection().webhookId = null;
-                HAUtils.launchURL(Connection().httpWebHost+"/config/integrations/dashboard");
-              });
+              HAUtils.launchURL("https://github.com/estevez-dev/ha_client/issues/new");
+            },
+            onNegative: () {
+              HAUtils.launchURL("https://discord.gg/AUzEvwn");
             },
           ));
         }
@@ -193,6 +185,22 @@ class HomeAssistant {
       });
       return completer.future;
     }
+  }
+
+  void _askToRegisterApp() {
+    eventBus.fire(ShowPopupDialogEvent(
+      title: "App integration was removed",
+      body: "Looks like app integration was removed from your Home Assistant. HA Client needs to be registered on your Home Assistant server to make it possible to use notifications and other useful stuff.",
+      positiveText: "Register now",
+      negativeText: "Cancel",
+      onPositive: () {
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.remove("app-webhook-id");
+          Connection().webhookId = null;
+          HomeAssistant().checkAppRegistration();
+        });
+      },
+    ));
   }
 
   Future _getConfig() async {
