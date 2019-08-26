@@ -296,31 +296,25 @@ class HomeAssistant {
     List<HACard> result = [];
     rawCards.forEach((rawCard){
       try {
-        bool isThereCardOptionsInside = rawCard["card"] != null;
+        //bool isThereCardOptionsInside = rawCard["card"] != null;
+        var rawCardInfo =  rawCard["card"] ?? rawCard;
         HACard card = HACard(
             id: "card",
-            name: isThereCardOptionsInside ? rawCard["card"]["title"] ??
-                rawCard["card"]["name"] : rawCard["title"] ?? rawCard["name"],
-            type: isThereCardOptionsInside
-                ? rawCard["card"]['type']
-                : rawCard['type'],
-            columnsCount: isThereCardOptionsInside
-                ? rawCard["card"]['columns'] ?? 4
-                : rawCard['columns'] ?? 4,
-            showName: isThereCardOptionsInside ? rawCard["card"]['show_name'] ??
-                true : rawCard['show_name'] ?? true,
-            showState: isThereCardOptionsInside
-                ? rawCard["card"]['show_state'] ?? true
-                : rawCard['show_state'] ?? true,
-            showEmpty: rawCard['show_empty'] ?? true,
-            stateFilter: rawCard['state_filter'] ?? [],
-            states: rawCard['states'],
-            content: rawCard['content']
+            name: rawCardInfo["title"] ?? rawCardInfo["name"],
+            type: rawCardInfo['type'],
+            columnsCount: rawCardInfo['columns'] ?? 4,
+            showName: rawCardInfo['show_name'] ?? true,
+            showState: rawCardInfo['show_state'] ?? true,
+            showEmpty: rawCardInfo['show_empty'] ?? true,
+            stateFilter: rawCardInfo['state_filter'] ?? [],
+            states: rawCardInfo['states'],
+            conditions: rawCard['conditions'] ?? [],
+            content: rawCardInfo['content']
         );
-        if (rawCard["cards"] != null) {
-          card.childCards = _createLovelaceCards(rawCard["cards"]);
+        if (rawCardInfo["cards"] != null) {
+          card.childCards = _createLovelaceCards(rawCardInfo["cards"]);
         }
-        rawCard["entities"]?.forEach((rawEntity) {
+        rawCardInfo["entities"]?.forEach((rawEntity) {
           if (rawEntity is String) {
             if (entities.isExist(rawEntity)) {
               card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
@@ -383,15 +377,15 @@ class HomeAssistant {
             }
           }
         });
-        if (rawCard["entity"] != null) {
-          var en = rawCard["entity"];
+        if (rawCardInfo["entity"] != null) {
+          var en = rawCardInfo["entity"];
           if (en is String) {
             if (entities.isExist(en)) {
               Entity e = entities.get(en);
               card.linkedEntityWrapper = EntityWrapper(
                   entity: e,
-                  icon: rawCard["icon"],
-                  displayName: rawCard["name"],
+                  icon: rawCardInfo["icon"],
+                  displayName: rawCardInfo["name"],
                   uiAction: EntityUIAction(rawEntityData: rawCard)
               );
             } else {

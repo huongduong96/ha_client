@@ -24,6 +24,22 @@ class CardWidget extends StatelessWidget {
       }
     }
 
+    if (card.conditions.isNotEmpty) {
+      bool showCardByConditions = false;
+      for (var condition in card.conditions) {
+        Entity conditionEntity = HomeAssistant().entities.get(condition['entity']);
+        if (conditionEntity != null &&
+            (condition['state'] != null && conditionEntity.state == condition['state']) ||
+            (condition['state_not'] != null && conditionEntity.state != condition['state_not'])
+          ) {
+          showCardByConditions = true;
+        }
+      }
+      if (!showCardByConditions) {
+        return Container(width: 0.0, height: 0.0,);
+      }
+    }
+
     switch (card.type) {
 
       case CardType.entities: {

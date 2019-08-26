@@ -13,6 +13,7 @@ class HACard {
   int columnsCount;
   List stateFilter;
   List states;
+  List conditions;
   String content;
 
   HACard({
@@ -26,6 +27,7 @@ class HACard {
     this.showEmpty: true,
     this.content,
     this.states,
+    this.conditions,
     @required this.type
   });
 
