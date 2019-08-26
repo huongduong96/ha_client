@@ -12,12 +12,12 @@ class ProductPurchase extends StatelessWidget {
   Widget build(BuildContext context) {
     String period = "/ ";
     Color priceColor;
-    if (product.id.contains("month")) {
-      period += "month";
-      priceColor = Colors.deepOrangeAccent;
-    } else {
+    if (product.id.contains("year")) {
       period += "year";
       priceColor = Colors.amber;
+    } else {
+      period += "month";
+      priceColor = Colors.deepOrangeAccent;
     }
     return Card(
         child: Padding(

@@ -29,7 +29,7 @@ class _PurchasePageState extends State<PurchasePage> {
         _error = "Error connecting to store";
       });
     } else {
-      const Set<String> _kIds = {'just_few_bucks', 'flat_white_a_month', 'lunch_a_year', 'lunch_a_month'};
+      const Set<String> _kIds = {'just_few_bucks_per_year', 'app_fan_support_per_year', 'grateful_user_support_per_year'};
       final ProductDetailsResponse response = await InAppPurchaseConnection.instance.queryProductDetails(_kIds);
       if (!response.notFoundIDs.isEmpty) {
         Logger.d("Products not found: ${response.notFoundIDs}");
