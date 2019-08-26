@@ -104,13 +104,11 @@ class Connection {
           completer?.completeError(HAError("Connection timeout"));
         });
       }).then((_) {
-        Logger.d("doConnect is finished 1");
         completer?.complete();
       }).catchError((e) {
         completer?.completeError(e);
       });
     } else {
-      Logger.d("doConnect is finished 2");
       completer?.complete();
     }
   }
@@ -124,7 +122,7 @@ class Connection {
     } else {
       connecting = Completer();
       _disconnect().then((_) {
-        Logger.d("Socket connecting: $_webSocketAPIEndpoint...");
+        Logger.d("Socket connecting...");
         _socket = IOWebSocketChannel.connect(
             _webSocketAPIEndpoint, pingInterval: Duration(seconds: 15));
         _socketSubscription = _socket.stream.listen(
@@ -337,13 +335,13 @@ class Connection {
       _connect().timeout(connectTimeout, onTimeout: (){
         _completer.completeError(HAError("No connection to Home Assistant", actions: [HAErrorAction.reconnect()]));
       }).then((_) {
-        Logger.d("[Sending] ==> $rawMessage");
+        Logger.d("[Sending] ==> ${auth ? "type="+dataObject['type'] : rawMessage}");
         _socket.sink.add(rawMessage);
       }).catchError((e) {
         _completer.completeError(e);
       });
     } else {
-      Logger.d("[Sending] ==> $rawMessage");
+      Logger.d("[Sending] ==> ${auth ? "type="+dataObject['type'] : rawMessage}");
       _socket.sink.add(rawMessage);
     }
     return _completer.future;
@@ -372,7 +370,7 @@ class Connection {
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String url = "$httpWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
-    Logger.d("[Sending] ==> $url");
+    Logger.d("[Sending] ==> HTTP /api/history/period/$startTime?&filter_entity_id=$entityId");
     http.Response historyResponse;
     historyResponse = await http.get(url, headers: {
       "authorization": "Bearer $_token",
@@ -380,7 +378,7 @@ class Connection {
     });
     var history = json.decode(historyResponse.body);
     if (history is List) {
-      Logger.d( "[Received] <== ${history.first.length} history recors");
+      Logger.d( "[Received] <== HTTP ${history.first.length} history recors");
       return history;
     } else {
       return [];
@@ -390,7 +388,7 @@ class Connection {
   Future sendHTTPPost({String endPoint, String data, String contentType: "application/json", bool includeAuthHeader: true}) async {
     Completer completer = Completer();
     String url = "$httpWebHost$endPoint";
-    Logger.d("[Sending] ==> $url");
+    Logger.d("[Sending] ==> HTTP $endPoint");
     Map<String, String> headers = {};
     if (contentType != null) {
       headers["Content-Type"] = contentType;
@@ -403,7 +401,7 @@ class Connection {
         headers: headers,
         body: data
     ).then((response) {
-      Logger.d("[Received] <== ${response.statusCode}, ${response.body}");
+      Logger.d("[Received] <== HTTP ${response.statusCode}");
       if (response.statusCode >= 200 && response.statusCode < 300 ) {
         completer.complete(response.body);
       } else {
