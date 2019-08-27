@@ -27,7 +27,7 @@ class HACard {
     this.showEmpty: true,
     this.content,
     this.states,
-    this.conditions,
+    this.conditions: const [],
     @required this.type
   });
 
