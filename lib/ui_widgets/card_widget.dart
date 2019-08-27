@@ -24,7 +24,7 @@ class CardWidget extends StatelessWidget {
       }
     }
 
-    if (card.conditions.isNotEmpty) {
+    if (card.conditions != null && card.conditions.isNotEmpty) {
       bool showCardByConditions = false;
       for (var condition in card.conditions) {
         Entity conditionEntity = HomeAssistant().entities.get(condition['entity']);
