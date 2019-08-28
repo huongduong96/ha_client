@@ -15,7 +15,6 @@ import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-//import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
@@ -23,8 +22,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:location/location.dart';
 
 part 'const.dart';
+part 'premium_features_manager.class.dart';
 part 'entities/entity.class.dart';
 part 'entities/entity_wrapper.class.dart';
 part 'entities/timer/timer_entity.class.dart';
@@ -118,7 +119,7 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLoc
 const String appName = "HA Client";
 const appVersion = "0.6.4";
 
-void main() {
+void main() async {
   FlutterError.onError = (errorDetails) {
     Logger.e( "${errorDetails.exception}");
     if (Logger.isInDebugMode) {
@@ -127,7 +128,9 @@ void main() {
   };
 
   runZoned(() {
+
     runApp(new HAClientApp());
+
   }, onError: (error, stack) {
     Logger.e("$error");
     Logger.e("$stack");
@@ -239,6 +242,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
 
+
+
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
@@ -247,6 +252,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     });
 
     _fullLoad();
+
+
   }
 
   Future onSelectNotification(String payload) async {
@@ -274,6 +281,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showInfoBottomBar(progress: true,);
     _subscribe().then((_) {
       Connection().init(loadSettings: true, forceReconnect: true).then((__){
+        PremiumFeaturesManager();
         _fetchData();
       }, onError: (e) {
         _setErrorState(e);
@@ -321,6 +329,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   void _handlePurchaseUpdates(purchase) {
     if (purchase is List<PurchaseDetails>) {
       if (purchase[0].status == PurchaseStatus.purchased) {
+        PremiumFeaturesManager().updatePurchases(purchase[0]);
         eventBus.fire(ShowPopupMessageEvent(
             title: "Thanks a lot!",
             body: "Thank you for supporting HA Client development!",
@@ -752,6 +761,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   Widget _buildScaffoldBody(bool empty) {
     List<PopupMenuItem<String>> popupMenuItems = [];
+
     popupMenuItems.add(PopupMenuItem<String>(
       child: new Text("Reload"),
       value: "reload",

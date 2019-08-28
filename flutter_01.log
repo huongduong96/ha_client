@@ -1,0 +1,41 @@
+Flutter crash report; please file at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter --no-color run --machine --track-widget-creation --device-id=89AY052S4 lib/main.dart
+
+## exception
+
+_InternalLinkedHashMap<String, dynamic>: {code: 105, message: Isolate must be runnable, data: {request: {method: _reloadSources, params: {pause: true, rootLibUri: file:///data/user/0/com.keyboardcrumbs.haclient/code_cache/ha_clientSYJJZI/ha_client/lib/main.dart.incremental.dill, packagesUri: file:///data/user/0/com.keyboardcrumbs.haclient/code_cache/ha_clientSYJJZI/ha_client/.packages, isolateId: isolates/68989666}}, details: Isolate must be runnable before this request is made.}}
+
+```
+null```
+
+## flutter doctor
+
+```
+[✓] Flutter (Channel stable, v1.7.8+hotfix.4, on Linux, locale en_US.UTF-8)
+    • Flutter version 1.7.8+hotfix.4 at /home/estevez/sdk/flutter
+    • Framework revision 20e59316b8 (6 weeks ago), 2019-07-18 20:04:33 -0700
+    • Engine revision fee001c93f
+    • Dart version 2.4.0
+
+[✓] Android toolchain - develop for Android devices (Android SDK version 29.0.2)
+    • Android SDK at /home/estevez/Android/Sdk
+    • Android NDK location not configured (optional; useful for native profiling support)
+    • Platform android-29, build-tools 29.0.2
+    • Java binary at: /home/estevez/bin/android-studio/jre/bin/java
+    • Java version OpenJDK Runtime Environment (build 1.8.0_202-release-1483-b49-5587405)
+    • All Android licenses accepted.
+
+[✓] Android Studio (version 3.5)
+    • Android Studio at /home/estevez/bin/android-studio
+    • Flutter plugin version 38.2.3
+    • Dart plugin version 191.8423
+    • Java version OpenJDK Runtime Environment (build 1.8.0_202-release-1483-b49-5587405)
+
+[✓] Connected device (1 available)
+    • Pixel 3 XL • 89AY052S4 • android-arm64 • Android 9 (API 28)
+
+• No issues found!
+```

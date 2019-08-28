@@ -11,4 +11,5 @@ build/
 .idea/
 
 key.properties
+premium_features_manager.class.dart
 pubspec.lock
