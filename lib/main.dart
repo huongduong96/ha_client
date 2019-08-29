@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:isolate';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -130,6 +131,7 @@ void main() async {
   runZoned(() {
 
     runApp(new HAClientApp());
+    print("Running MAIN isolate ${Isolate.current.hashCode}");
 
   }, onError: (error, stack) {
     Logger.e("$error");
@@ -329,12 +331,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   void _handlePurchaseUpdates(purchase) {
     if (purchase is List<PurchaseDetails>) {
       if (purchase[0].status == PurchaseStatus.purchased) {
-        PremiumFeaturesManager().updatePurchases(purchase[0]);
+        PremiumFeaturesManager().addPurchase(purchase[0]);
         eventBus.fire(ShowPopupMessageEvent(
             title: "Thanks a lot!",
             body: "Thank you for supporting HA Client development!",
             buttonText: "Ok"
         ));
+      } else {
+        Logger.d("Purchase change handler: ${purchase[0].status}");
       }
     } else {
       Logger.e("Something wrong with purchase handling. Got: $purchase");
