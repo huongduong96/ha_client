@@ -83,6 +83,7 @@ part 'entities/cover/widgets/cover_state.dart';
 part 'entities/date_time/widgets/date_time_state.dart';
 part 'entities/lock/widgets/lock_state.dart';
 part 'entities/climate/widgets/climate_controls.dart';
+part 'entities/climate/widgets/temperature_control_widget.dart';
 part 'entities/cover/widgets/cover_controls.widget.dart';
 part 'entities/light/widgets/light_controls.dart';
 part 'entities/media_player/widgets/media_player_widgets.dart';
@@ -112,7 +113,8 @@ part 'ui_class/panel_class.dart';
 part 'ui_widgets/view.dart';
 part 'ui_widgets/card_widget.dart';
 part 'ui_widgets/card_header_widget.dart';
-part 'ui_widgets/config_panel_widget.dart';
+part 'panels/config_panel_widget.dart';
+part 'panels/widgets/link_to_web_config.dart';
 
 
 EventBus eventBus = new EventBus();

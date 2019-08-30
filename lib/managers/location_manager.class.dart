@@ -3,9 +3,9 @@ part of '../main.dart';
 class LocationManager {
 
   static void updateDeviceLocation() {
-    print("[Test isolate #${Isolate.current.hashCode}] alarm service callback");
+    print("[Location isolate #${Isolate.current.hashCode}] started");
     SharedPreferences.getInstance().then((prefs){
-      print("[Test isolate #${Isolate.current.hashCode}] loading settings");
+      print("[Location isolate #${Isolate.current.hashCode}] loading settings");
       String webhookId = prefs.getString('app-webhook-id');
       String domain = prefs.getString('hassio-domain');
       String port = prefs.getString('hassio-port');
@@ -15,7 +15,7 @@ class LocationManager {
         DateTime currentTime = DateTime.now();
         String timeData = "${currentTime.year}-${currentTime.month}-${currentTime.day} ${currentTime.hour}:${currentTime.minute}";
         try {
-          print("[Test isolate #${Isolate.current.hashCode}] Sending test time data home...");
+          print("[Location isolate #${Isolate.current.hashCode}] Sending test time data home...");
           String url = "$httpWebHost/api/webhook/$webhookId";
           Map<String, String> headers = {};
           headers["Content-Type"] = "application/json";
@@ -36,11 +36,11 @@ class LocationManager {
               body: json.encode(data)
           );
         } catch (e) {
-          print("[Test isolate #${Isolate.current.hashCode}] Error: ${e.toString()}");
+          print("[Location isolate #${Isolate.current.hashCode}] Error: ${e.toString()}");
         }
-        Logger.d("[Test isolate #${Isolate.current.hashCode}] Getting device location...");
+        Logger.d("[Location isolate #${Isolate.current.hashCode}] Getting device location...");
         Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.medium).then((location) {
-          Logger.d("[Test isolate #${Isolate.current.hashCode}] Got location: ${location.latitude} ${location.longitude}. Sending home...");
+          Logger.d("[Location isolate #${Isolate.current.hashCode}] Got location: ${location.latitude} ${location.longitude}. Sending home...");
           int battery = DateTime.now().hour;
           try {
             String url = "$httpWebHost/api/webhook/$webhookId";
@@ -60,12 +60,12 @@ class LocationManager {
                 body: json.encode(data)
             );
           } catch (e) {
-            print("[Test isolate #${Isolate.current.hashCode}] Error sending location: ${e.toString()}");
+            print("[Location isolate #${Isolate.current.hashCode}] Error sending location: ${e.toString()}");
           }
         });
 
       } else {
-        print("[Test isolate #${Isolate.current.hashCode}] No webhook id. Aborting");
+        print("[Location isolate #${Isolate.current.hashCode}] No webhook id. Aborting");
       }
     });
   }
@@ -78,14 +78,18 @@ class LocationManager {
   }
 
   LocationManager._internal() {
-    _registerLocationListener();
+    _startLocationService();
   }
 
   final int alarmId = 34901199;
-  final Duration locationUpdateInterval = Duration(minutes: 5);
 
-  void _registerLocationListener() async {
-    Logger.d("Activating alarm service test");
+  void _startLocationService() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    Duration locationUpdateInterval = Duration(minutes: prefs.getInt("location-interval") ?? 10);
+    Logger.d("Canceling previous schedule if any...");
+    await AndroidAlarmManager.cancel(alarmId);
+    Logger.d("Scheduling location update for every ${locationUpdateInterval.inMinutes} minutes...");
     await AndroidAlarmManager.periodic(
         locationUpdateInterval,
       alarmId,

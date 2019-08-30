@@ -12,8 +12,6 @@ class PanelPage extends StatefulWidget {
 
 class _PanelPageState extends State<PanelPage> {
 
-  List<ConfigurationItem> _items;
-
   @override
   void initState() {
     super.initState();
