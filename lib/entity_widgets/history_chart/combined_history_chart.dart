@@ -148,7 +148,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     });
 
     if ((_selectedId == -1) && (numericDataLists.isNotEmpty)) {
-      _selectedId = 0;
+      _selectedId = numericDataLists.length -1;
     }
     List<charts.Series<EntityHistoryMoment, DateTime>> result = [];
     numericDataLists.forEach((attrName, dataList) {
@@ -202,6 +202,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         _selectedId -= 1;
       });
     }
+    else {
+      setState(() {
+        _selectedId = _parsedHistory.first.data.length - 1;
+      });
+    }
   }
 
   void _selectNext() {
@@ -209,6 +214,12 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
       setState(() {
         _selectedId += 1;
       });
+    }
+    else {
+      setState(() {
+        _selectedId = 0;
+      });
+
     }
   }
 

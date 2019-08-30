@@ -101,7 +101,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
         colorId: data.last.colorId
     ));
     if (_selectedId == -1) {
-      _selectedId = 0;
+      _selectedId = data.length - 1;
     }
     return [
       new charts.Series<EntityHistoryMoment, DateTime>(
@@ -137,13 +137,24 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
         _selectedId -= 1;
       });
     }
+    else {
+      setState(() {
+        _selectedId = _parsedHistory.first.data.length - 1;
+      });
+    }
   }
 
   void _selectNext() {
-    if (_selectedId < (_parsedHistory.first.data.length - 2)) {
+    if (_selectedId < (_parsedHistory.first.data.length - 1)) {
       setState(() {
         _selectedId += 1;
       });
+    }
+    else {
+      setState(() {
+        _selectedId = 0;
+      });
+
     }
   }
 
