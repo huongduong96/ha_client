@@ -10,13 +10,19 @@ class ProductPurchase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String period = "/ ";
+    String period = "";
     Color priceColor;
+    String buttonText = '';
+    String buttonTextInactive = '';
     if (product.id.contains("year")) {
-      period += "year";
+      period += "/ year";
+      buttonText = "Subscribe";
+      buttonTextInactive = "Already";
       priceColor = Colors.amber;
     } else {
-      period += "month";
+      period += "";
+      buttonText = "Pay";
+      buttonTextInactive = "Paid";
       priceColor = Colors.deepOrangeAccent;
     }
     return Card(
@@ -55,7 +61,7 @@ class ProductPurchase extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: RaisedButton(
-                  child: Text(this.purchased ? "Bought" : "Buy", style: TextStyle(color: Colors.white)),
+                  child: Text(this.purchased ? buttonTextInactive : buttonText, style: TextStyle(color: Colors.white)),
                   color: Colors.blue,
                   onPressed: this.purchased ? null : () => this.onBuy(this.product),
                 ),

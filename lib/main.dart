@@ -24,9 +24,9 @@ import 'package:device_info/device_info.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:location/location.dart';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 
 part 'const.dart';
-part 'premium_features_manager.class.dart';
 part 'entities/entity.class.dart';
 part 'entities/entity_wrapper.class.dart';
 part 'entities/timer/timer_entity.class.dart';
@@ -100,7 +100,8 @@ part 'pages/entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
-part 'auth_manager.class.dart';
+part 'managers/auth_manager.class.dart';
+part 'managers/location_manager.class.dart';
 part 'connection.class.dart';
 part 'device.class.dart';
 part 'ui_class/ui.dart';
@@ -129,9 +130,10 @@ void main() async {
   };
 
   runZoned(() {
-
-    runApp(new HAClientApp());
-    print("Running MAIN isolate ${Isolate.current.hashCode}");
+    AndroidAlarmManager.initialize().then((_) {
+      runApp(new HAClientApp());
+      print("Running MAIN isolate ${Isolate.current.hashCode}");
+    });
 
   }, onError: (error, stack) {
     Logger.e("$error");
@@ -283,7 +285,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showInfoBottomBar(progress: true,);
     _subscribe().then((_) {
       Connection().init(loadSettings: true, forceReconnect: true).then((__){
-        PremiumFeaturesManager();
+        LocationManager();
         _fetchData();
       }, onError: (e) {
         _setErrorState(e);
@@ -331,7 +333,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   void _handlePurchaseUpdates(purchase) {
     if (purchase is List<PurchaseDetails>) {
       if (purchase[0].status == PurchaseStatus.purchased) {
-        PremiumFeaturesManager().addPurchase(purchase[0]);
         eventBus.fire(ShowPopupMessageEvent(
             title: "Thanks a lot!",
             body: "Thank you for supporting HA Client development!",

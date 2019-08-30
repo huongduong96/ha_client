@@ -13,26 +13,63 @@ class _PurchasePageState extends State<PurchasePage> {
 
   bool _loaded = false;
   String _error = "";
-
+  List<ProductDetails> _products;
+  List<PurchaseDetails> _purchases;
 
   @override
   void initState() {
     super.initState();
-    if (PremiumFeaturesManager().products.isEmpty) {
-      _error = "Subscription is not loaded";
+    _loadProducts();
+  }
+
+  _loadProducts() async {
+    final bool available = await InAppPurchaseConnection.instance.isAvailable();
+    if (!available) {
+      setState(() {
+        _error = "Error connecting to store";
+      });
     } else {
-      _loaded = true;
+      const Set<String> _kIds = {'one_time_support','just_few_bucks_per_year', 'app_fan_support_per_year', 'grateful_user_support_per_year'};
+      final ProductDetailsResponse response = await InAppPurchaseConnection.instance.queryProductDetails(_kIds);
+      if (!response.notFoundIDs.isEmpty) {
+        Logger.d("Products not found: ${response.notFoundIDs}");
+      }
+      _products = response.productDetails;
+      _loadPreviousPurchases();
+    }
+  }
+
+  _loadPreviousPurchases() async {
+    final QueryPurchaseDetailsResponse response = await InAppPurchaseConnection.instance.queryPastPurchases();
+    if (response.error != null) {
+      setState(() {
+        _error = "Error loading previous purchases";
+      });
+    } else {
+      _purchases = response.pastPurchases;
+      for (PurchaseDetails purchase in _purchases) {
+        Logger.d("Previous purchase: ${purchase.status}");
+      }
+      if (_products.isEmpty) {
+        setState(() {
+          _error = "No data found in store";
+        });
+      } else {
+        setState(() {
+          _loaded = true;
+        });
+      }
     }
   }
 
   Widget _buildProducts() {
     List<Widget> productWidgets = [];
-    for (ProductDetails product in PremiumFeaturesManager().products) {
+    for (ProductDetails product in _products) {
       productWidgets.add(
         ProductPurchase(
           product: product,
           onBuy: (product) => _buyProduct(product),
-          purchased: PremiumFeaturesManager().purchases.any((purchase) { return purchase.productID == product.id;}),)
+          purchased: _purchases.any((purchase) { return purchase.productID == product.id;}),)
       );
     }
     return ListView(
