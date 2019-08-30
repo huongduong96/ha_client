@@ -96,14 +96,15 @@ class LocationManager {
   }
 
   final int alarmId = 349011;
-  final Duration testAlarmUpdateInterval = Duration(minutes: 10);
+  final Duration testAlarmUpdateInterval = Duration(minutes: 1);
+  final Duration locationUpdateInterval = Duration(minutes: 1);
 
   void _registerLocationListener() async {
     var _locationService = Location();
     bool _permission = await _locationService.requestPermission();
     if (_permission) {
       Logger.d("Activating device location tracking");
-      _locationService.changeSettings(interval: 10000, accuracy: LocationAccuracy.BALANCED);
+      _locationService.changeSettings(interval: locationUpdateInterval.inMilliseconds, accuracy: LocationAccuracy.BALANCED);
       bool statusBackgroundLocation = await _locationService.registerBackgroundLocation(LocationManager.updateDeviceLocation);
       Logger.d("Location listener status: $statusBackgroundLocation");
     } else {
@@ -111,7 +112,13 @@ class LocationManager {
     }
     //await AndroidAlarmManager.cancel(alarmId);
     Logger.d("Activating alarm service test");
-    await AndroidAlarmManager.periodic(testAlarmUpdateInterval, alarmId, LocationManager.updateTestEntity);
+    await AndroidAlarmManager.periodic(
+      testAlarmUpdateInterval,
+      alarmId,
+      LocationManager.updateTestEntity,
+      wakeup: true,
+      rescheduleOnReboot: false
+    );
   }
 
 }
