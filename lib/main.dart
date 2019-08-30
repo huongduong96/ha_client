@@ -23,8 +23,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:location/location.dart';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:geolocator/geolocator.dart';
 
 part 'const.dart';
 part 'entities/entity.class.dart';

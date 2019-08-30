@@ -50,13 +50,6 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="com.lyokone.location.BackgroundLocationBroadcastReceiver"
-            android:enabled="true" android:exported="true">
-            <intent-filter>
-                <action android:name="com.lyokone.location.BackgroundLocationBroadcastReceiver.ACTION_PROCESS_UPDATES" />
-            </intent-filter>
-        </receiver>
-
         <service
             android:name="io.flutter.plugins.androidalarmmanager.AlarmService"
             android:permission="android.permission.BIND_JOB_SERVICE"
