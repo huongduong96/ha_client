@@ -9,8 +9,9 @@ class ConfigPanelWidget extends StatefulWidget {
 
 class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
 
-  int locationInterval;
-  bool needToRestartLocationTracking = false;
+  int _locationInterval = LocationManager().defaultUpdateIntervalMinutes;
+  bool _locationTrackingEnabled = false;
+  bool _needToRestartLocationTracking = false;
 
   @override
   void initState() {
@@ -23,29 +24,30 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
     await prefs.reload();
     SharedPreferences.getInstance().then((prefs) {
       setState(() {
-        locationInterval = prefs.getInt("location-interval") ?? LocationManager().defaultUpdateIntervalMinutes;
+        _locationTrackingEnabled = prefs.getBool("location-enabled") ?? false;
+        _locationInterval = prefs.getInt("location-interval") ?? LocationManager().defaultUpdateIntervalMinutes;
       });
     });
   }
 
   void incLocationInterval() {
-    needToRestartLocationTracking = true;
-    if (locationInterval < 720) {
+    _needToRestartLocationTracking = true;
+    if (_locationInterval < 720) {
       setState(() {
-        locationInterval = locationInterval + 1;
+        _locationInterval = _locationInterval + 1;
       });
-      SharedPreferences.getInstance().then((prefs) => prefs.setInt("location-interval", locationInterval));
+      SharedPreferences.getInstance().then((prefs) => prefs.setInt("location-interval", _locationInterval));
     }
   }
 
   void decLocationInterval() {
-    needToRestartLocationTracking = true;
-    if (locationInterval > 1) {
+    _needToRestartLocationTracking = true;
+    if (_locationInterval > 1) {
       setState(() {
-        locationInterval = locationInterval - 1;
+        _locationInterval = _locationInterval - 1;
       });
       SharedPreferences.getInstance().then((prefs) {
-        prefs.setInt("location-interval", locationInterval);
+        prefs.setInt("location-interval", _locationInterval);
       });
     }
   }
@@ -131,6 +133,22 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 Divider(),
                 Text("Location tracking", style: TextStyle(fontSize: Sizes.largeFontSize-2)),
                 Container(height: Sizes.rowPadding,),
+                Row(
+                  children: <Widget>[
+                    Text("Enable device location tracking"),
+                    Switch(
+                      value: _locationTrackingEnabled,
+                      onChanged: (value) {
+                        SharedPreferences.getInstance().then((prefs) => prefs.setBool("location-enabled", value));
+                        setState(() {
+                          _locationTrackingEnabled = value;
+                          _needToRestartLocationTracking = true;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                Container(height: Sizes.rowPadding,),
                 Text("Location update interval in minutes:"),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -142,7 +160,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                       child: Text("+", style: TextStyle(fontSize: Sizes.largeFontSize)),
                       onPressed: () => incLocationInterval(),
                     ),
-                    Text("$locationInterval", style: TextStyle(fontSize: Sizes.largeFontSize)),
+                    Text("$_locationInterval", style: TextStyle(fontSize: Sizes.largeFontSize)),
                     FlatButton(
                       padding: EdgeInsets.all(0.0),
                       child: Text("-", style: TextStyle(fontSize: Sizes.largeFontSize)),
@@ -173,9 +191,12 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
 
   @override
   void dispose() {
-    if (needToRestartLocationTracking) {
-      Logger.d("Location tracking interval was changed. Rescheduling location service...");
+    if (_needToRestartLocationTracking) {
+      Logger.d("Location tracking settings was changed. Restarting location service...");
       LocationManager()._startLocationService();
+      if (_locationTrackingEnabled) {
+        LocationManager().updateDeviceLocation();
+      }
     }
     super.dispose();
   }

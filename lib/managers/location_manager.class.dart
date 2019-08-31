@@ -87,64 +87,89 @@ class LocationManager {
   void _startLocationService() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.reload();
-    Duration locationUpdateInterval = Duration(minutes: prefs.getInt("location-interval") ?? defaultUpdateIntervalMinutes);
-    Logger.d("Canceling previous schedule if any...");
-    await AndroidAlarmManager.cancel(alarmId);
-    Logger.d("Scheduling location update for every ${locationUpdateInterval.inMinutes} minutes...");
-    await AndroidAlarmManager.periodic(
-        locationUpdateInterval,
-      alarmId,
-      LocationManager.updateDeviceLocationIsolate,
-      wakeup: true,
-      rescheduleOnReboot: true
-    );
+    bool enabled = prefs.getBool("location-enabled") ?? false;
+    if (enabled) {
+      Duration locationUpdateInterval = Duration(
+          minutes: prefs.getInt("location-interval") ??
+              defaultUpdateIntervalMinutes);
+      Logger.d("Canceling previous schedule if any...");
+      await AndroidAlarmManager.cancel(alarmId);
+      Logger.d("Scheduling location update for every ${locationUpdateInterval
+          .inMinutes} minutes...");
+      await AndroidAlarmManager.periodic(
+          locationUpdateInterval,
+          alarmId,
+          LocationManager.updateDeviceLocationIsolate,
+          wakeup: true,
+          rescheduleOnReboot: true
+      );
+    } else {
+      Logger.d("Location tracking is disabled");
+      Logger.d("Canceling previous schedule if any...");
+      await AndroidAlarmManager.cancel(alarmId);
+    }
   }
 
   void updateDeviceLocation() async {
     print("[Location] started");
-    if (ConnectionManager().webhookId != null && ConnectionManager().webhookId.isNotEmpty) {
-      DateTime currentTime = DateTime.now();
-      String timeData = "${currentTime.year}-${currentTime.month}-${currentTime.day} ${currentTime.hour}:${currentTime.minute}";
-      print("[Location] Sending test time data home...");
-      String url = "${ConnectionManager().httpWebHost}/api/webhook/${ConnectionManager().webhookId}";
-      Map<String, String> headers = {};
-      headers["Content-Type"] = "application/json";
-      var data = {
-        "type": "call_service",
-        "data": {
-          "domain": "input_datetime",
-          "service": "set_datetime",
-          "service_data": {
-            "entity_id": "input_datetime.app_alarm_service_test",
-            "datetime": timeData
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    bool enabled = prefs.getBool("location-enabled") ?? false;
+    if (enabled) {
+      if (ConnectionManager().webhookId != null &&
+          ConnectionManager().webhookId.isNotEmpty) {
+        DateTime currentTime = DateTime.now();
+        String timeData = "${currentTime.year}-${currentTime
+            .month}-${currentTime.day} ${currentTime.hour}:${currentTime
+            .minute}";
+        print("[Location] Sending test time data home...");
+        String url = "${ConnectionManager()
+            .httpWebHost}/api/webhook/${ConnectionManager().webhookId}";
+        Map<String, String> headers = {};
+        headers["Content-Type"] = "application/json";
+        var data = {
+          "type": "call_service",
+          "data": {
+            "domain": "input_datetime",
+            "service": "set_datetime",
+            "service_data": {
+              "entity_id": "input_datetime.app_alarm_service_test",
+              "datetime": timeData
+            }
           }
-        }
-      };
-      await http.post(
-          url,
-          headers: headers,
-          body: json.encode(data)
-      );
-      Logger.d("[Location] Getting device location...");
-      Position location = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
-      Logger.d("[Location] Got location: ${location.latitude} ${location.longitude}. Sending home...");
-      int battery = DateTime.now().hour;
-      data = {
-        "type": "update_location",
-        "data": {
-          "gps": [location.latitude, location.longitude],
-          "gps_accuracy": location.accuracy,
-          "battery": battery
-        }
-      };
-      await http.post(
-          url,
-          headers: headers,
-          body: json.encode(data)
-      );
-      Logger.d("[Location] ...done.");
+        };
+        await http.post(
+            url,
+            headers: headers,
+            body: json.encode(data)
+        );
+        Logger.d("[Location] Getting device location...");
+        Position location = await Geolocator().getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium);
+        Logger.d("[Location] Got location: ${location.latitude} ${location
+            .longitude}. Sending home...");
+        int battery = DateTime
+            .now()
+            .hour;
+        data = {
+          "type": "update_location",
+          "data": {
+            "gps": [location.latitude, location.longitude],
+            "gps_accuracy": location.accuracy,
+            "battery": battery
+          }
+        };
+        await http.post(
+            url,
+            headers: headers,
+            body: json.encode(data)
+        );
+        Logger.d("[Location] ...done.");
+      } else {
+        print("[Location] No webhook id. Aborting");
+      }
     } else {
-      print("[Location] No webhook id. Aborting");
+      Logger.d("[Location] Location tracking is disabled");
     }
   }
 
