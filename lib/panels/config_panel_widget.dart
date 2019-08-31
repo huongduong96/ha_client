@@ -193,7 +193,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   void dispose() {
     if (_needToRestartLocationTracking) {
       Logger.d("Location tracking settings was changed. Restarting location service...");
-      LocationManager()._startLocationService();
+      LocationManager().startLocationService();
       if (_locationTrackingEnabled) {
         LocationManager().updateDeviceLocation();
       }

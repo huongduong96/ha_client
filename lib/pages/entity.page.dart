@@ -4,6 +4,7 @@ class EntityViewPage extends StatefulWidget {
   EntityViewPage({Key key, @required this.entityId, @required this.homeAssistant }) : super(key: key);
 
   final String entityId;
+  //TODO remove it!
   final HomeAssistant homeAssistant;
 
   @override

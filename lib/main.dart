@@ -106,6 +106,7 @@ part 'managers/location_manager.class.dart';
 part 'managers/mobile_app_integration_manager.class.dart';
 part 'managers/connection_manager.class.dart';
 part 'managers/device_info_manager.class.dart';
+part 'managers/startup_user_messages_manager.class.dart';
 part 'ui_class/ui.dart';
 part 'ui_class/view.class.dart';
 part 'ui_class/card.class.dart';
@@ -211,6 +212,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _showPopupDialogSubscription;
   StreamSubscription _showPopupMessageSubscription;
   StreamSubscription _reloadUISubscription;
+  StreamSubscription _showPageSubscription;
   int _previousViewCount;
   bool _showLoginButton = false;
 
@@ -290,6 +292,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       ConnectionManager().init(loadSettings: true, forceReconnect: true).then((__){
         LocationManager();
         _fetchData();
+        StartupUserMessagesManager().checkMessagesToShow();
       }, onError: (e) {
         _setErrorState(e);
       });
@@ -302,6 +305,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
       LocationManager().updateDeviceLocation();
       _fetchData();
+      StartupUserMessagesManager().checkMessagesToShow();
     }, onError: (e) {
       _setErrorState(e);
     });
@@ -405,6 +409,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           });
     }
 
+    if (_showPageSubscription == null) {
+      _showPageSubscription =
+          eventBus.on<ShowPageEvent>().listen((event) {
+            _showPage(event.path);
+          });
+    }
+
     if (_showErrorSubscription == null) {
       _showErrorSubscription = eventBus.on<ShowErrorEvent>().listen((event){
         _showErrorBottomBar(event.error);
@@ -496,6 +507,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         MaterialPageRoute(
           builder: (context) => EntityViewPage(entityId: entityId, homeAssistant: widget.homeAssistant),
         )
+    );
+  }
+
+  void _showPage(String path) {
+    Navigator.pushNamed(
+        context,
+        path
     );
   }
 
@@ -938,6 +956,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showErrorSubscription?.cancel();
     _startAuthSubscription?.cancel();
     _subscription?.cancel();
+    _showPageSubscription?.cancel();
     _reloadUISubscription?.cancel();
     //TODO disconnect
     //widget.homeAssistant?.disconnect();

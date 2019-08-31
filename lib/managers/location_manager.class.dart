@@ -78,13 +78,13 @@ class LocationManager {
   }
 
   LocationManager._internal() {
-    _startLocationService();
+    startLocationService();
   }
 
   final int defaultUpdateIntervalMinutes = 15;
   final int alarmId = 34901199;
 
-  void _startLocationService() async {
+  void startLocationService() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.reload();
     bool enabled = prefs.getBool("location-enabled") ?? false;

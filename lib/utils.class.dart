@@ -199,6 +199,12 @@ class ShowEntityPageEvent {
   ShowEntityPageEvent(this.entity);
 }
 
+class ShowPageEvent {
+  String path;
+
+  ShowPageEvent(this.path);
+}
+
 class ShowErrorEvent {
   final HAError error;
 
