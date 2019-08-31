@@ -226,13 +226,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _firebaseMessaging.configure(
         onLaunch: (data) {
           Logger.d("Notification [onLaunch]: $data");
+          return Future.value();
         },
         onMessage: (data) {
           Logger.d("Notification [onMessage]: $data");
-          _showNotification(title: data["notification"]["title"], text: data["notification"]["body"]);
+          return _showNotification(title: data["notification"]["title"], text: data["notification"]["body"]);
         },
         onResume: (data) {
           Logger.d("Notification [onResume]: $data");
+          return Future.value();
         }
     );
 
