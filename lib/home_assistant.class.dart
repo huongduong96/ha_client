@@ -66,7 +66,7 @@ class HomeAssistant {
       if (isMobileAppEnabled) {
         _createUI();
         _fetchCompleter.complete();
-        checkAppRegistration();
+        MobileAppIntegrationManager.checkAppRegistration();
       } else {
         _fetchCompleter.completeError(HAError("Mobile app component not found", actions: [HAErrorAction.tryAgain(), HAErrorAction(type: HAErrorActionType.URL ,title: "Help",url: "http://ha-client.homemade.systems/docs#mobile-app")]));
       }
@@ -83,124 +83,6 @@ class HomeAssistant {
       entities?.clear();
       panels?.clear();
     });
-  }
-
-  Map _getAppRegistrationData() {
-    return {
-      "app_version": "$appVersion",
-      "device_name": "$userName's ${Device().model}",
-      "manufacturer": Device().manufacturer,
-      "model": Device().model,
-      "os_version": Device().osVersion,
-      "app_data": {
-        "push_token": "$fcmToken",
-        "push_url": "https://us-central1-ha-client-c73c4.cloudfunctions.net/sendPushNotification"
-      }
-    };
-  }
-
-  Future checkAppRegistration({bool forceRegister: false, bool showOkDialog: false}) {
-    Completer completer = Completer();
-    if (Connection().webhookId == null || forceRegister) {
-      Logger.d("Mobile app was not registered yet or need to be reseted. Registering...");
-      var registrationData = _getAppRegistrationData();
-      registrationData.addAll({
-        "app_id": "ha_client",
-        "app_name": "$appName",
-        "os_name": Device().osName,
-        "supports_encryption": false,
-      });
-      Connection().sendHTTPPost(
-              endPoint: "/api/mobile_app/registrations",
-              includeAuthHeader: true,
-              data: json.encode(registrationData)
-          ).then((response) {
-            Logger.d("Processing registration responce...");
-            var responseObject = json.decode(response);
-            SharedPreferences.getInstance().then((prefs) {
-              prefs.setString("app-webhook-id", responseObject["webhook_id"]);
-              Connection().webhookId = responseObject["webhook_id"];
-              completer.complete();
-              eventBus.fire(ShowPopupDialogEvent(
-                title: "Mobile app Integration was created",
-                body: "HA Client was registered as MobileApp in your Home Assistant. To start using notifications you need to restart your Home Assistant",
-                positiveText: "Restart now",
-                negativeText: "Later",
-                onPositive: () {
-                  Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
-                },
-              ));
-            });
-          }).catchError((e) {
-            completer.complete();
-            Logger.e("Error registering the app: ${e.toString()}");
-          });
-      return completer.future;
-    } else {
-      Logger.d("App was previously registered. Checking...");
-      var updateData = {
-        "type": "update_registration",
-        "data": _getAppRegistrationData()
-      };
-      Connection().sendHTTPPost(
-          endPoint: "/api/webhook/${Connection().webhookId}",
-          includeAuthHeader: false,
-          data: json.encode(updateData)
-      ).then((response) {
-        if (response == null || response.isEmpty) {
-          Logger.d("No registration data in response. MobileApp integration was removed");
-          _askToRegisterApp();
-        } else {
-          Logger.d("App registration works fine");
-          if (showOkDialog) {
-            eventBus.fire(ShowPopupDialogEvent(
-                title: "All good",
-                body: "HA Client integration with your Home Assistant server works fine",
-                positiveText: "Nice!",
-                negativeText: "Ok"
-            ));
-          }
-        }
-        completer.complete();
-      }).catchError((e) {
-        if (e['code'] != null && e['code'] == 410) {
-          Logger.e("MobileApp integration was removed");
-          _askToRegisterApp();
-        } else {
-          Logger.e("Error updating app registration: ${e.toString()}");
-          eventBus.fire(ShowPopupDialogEvent(
-            title: "App integration is not working properly",
-            body: "Something wrong with HA Client integration on your Home Assistant server. Please report this issue.",
-            positiveText: "Report to GitHub",
-            negativeText: "Report to Discord",
-            onPositive: () {
-              HAUtils.launchURL("https://github.com/estevez-dev/ha_client/issues/new");
-            },
-            onNegative: () {
-              HAUtils.launchURL("https://discord.gg/AUzEvwn");
-            },
-          ));
-        }
-        completer.complete();
-      });
-      return completer.future;
-    }
-  }
-
-  void _askToRegisterApp() {
-    eventBus.fire(ShowPopupDialogEvent(
-      title: "App integration was removed",
-      body: "Looks like app integration was removed from your Home Assistant. HA Client needs to be registered on your Home Assistant server to make it possible to use notifications and other useful stuff.",
-      positiveText: "Register now",
-      negativeText: "Cancel",
-      onPositive: () {
-        SharedPreferences.getInstance().then((prefs) {
-          prefs.remove("app-webhook-id");
-          Connection().webhookId = null;
-          HomeAssistant().checkAppRegistration();
-        });
-      },
-    ));
   }
 
   Future _getConfig() async {

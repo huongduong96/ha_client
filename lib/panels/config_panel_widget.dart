@@ -75,7 +75,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   updateRegistration() {
-    HomeAssistant().checkAppRegistration(showOkDialog: true);
+    MobileAppIntegrationManager.checkAppRegistration(showOkDialog: true);
   }
 
   resetRegistration() {
@@ -85,7 +85,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
       positiveText: "Done it already",
       negativeText: "Ok, I will",
       onPositive: () {
-        HomeAssistant().checkAppRegistration(showOkDialog: true, forceRegister: true);
+        MobileAppIntegrationManager.checkAppRegistration(showOkDialog: true, forceRegister: true);
       },
     ));
   }

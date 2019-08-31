@@ -103,6 +103,7 @@ part 'mdi.class.dart';
 part 'entity_collection.class.dart';
 part 'managers/auth_manager.class.dart';
 part 'managers/location_manager.class.dart';
+part 'managers/mobile_app_integration_manager.class.dart';
 part 'connection.class.dart';
 part 'device.class.dart';
 part 'ui_class/ui.dart';
