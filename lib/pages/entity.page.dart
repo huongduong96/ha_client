@@ -1,11 +1,9 @@
 part of '../main.dart';
 
 class EntityViewPage extends StatefulWidget {
-  EntityViewPage({Key key, @required this.entityId, @required this.homeAssistant }) : super(key: key);
+  EntityViewPage({Key key, @required this.entityId}) : super(key: key);
 
   final String entityId;
-  //TODO remove it!
-  final HomeAssistant homeAssistant;
 
   @override
   _EntityViewPageState createState() => new _EntityViewPageState();
@@ -32,7 +30,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
   }
 
   void _prepareData() async {
-    _title = widget.homeAssistant.entities.get(widget.entityId).displayName;
+    _title = HomeAssistant().entities.get(widget.entityId).displayName;
   }
 
 
@@ -47,7 +45,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
         // the App.build method, and use it to set our appbar title.
         title: new Text(_title),
       ),
-      body: widget.homeAssistant.entities.get(widget.entityId).buildEntityPageWidget(context),
+      body: HomeAssistant().entities.get(widget.entityId).buildEntityPageWidget(context),
     );
   }
 

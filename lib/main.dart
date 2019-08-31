@@ -150,7 +150,6 @@ void main() async {
 
 class HAClientApp extends StatelessWidget {
 
-  final HomeAssistant homeAssistant = HomeAssistant();
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -161,9 +160,8 @@ class HAClientApp extends StatelessWidget {
       ),
       initialRoute: "/",
       routes: {
-        "/": (context) => MainPage(title: 'HA Client', homeAssistant: homeAssistant,),
+        "/": (context) => MainPage(title: 'HA Client'),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
-        "/configuration": (context) => PanelPage(title: "Configuration"),
         "/putchase": (context) => PurchasePage(title: "Support app development"),
         "/log-view": (context) => LogViewPage(title: "Log"),
         "/login": (context) => WebviewScaffold(
@@ -191,10 +189,9 @@ class HAClientApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
-  MainPage({Key key, this.title, this.homeAssistant}) : super(key: key);
+  MainPage({Key key, this.title}) : super(key: key);
 
   final String title;
-  final HomeAssistant homeAssistant;
 
   @override
   _MainPageState createState() => new _MainPageState();
@@ -312,9 +309,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   _fetchData() async {
-    await widget.homeAssistant.fetchData().then((_) {
+    await HomeAssistant().fetchData().then((_) {
       _hideBottomBar();
-      int currentViewCount = widget.homeAssistant.ui?.views?.length ?? 0;
+      int currentViewCount = HomeAssistant().ui?.views?.length ?? 0;
       if (_previousViewCount != currentViewCount) {
         Logger.d("Views count changed ($_previousViewCount->$currentViewCount). Creating new tabs controller.");
         _viewsTabController = TabController(vsync: this, length: currentViewCount);
@@ -505,7 +502,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EntityViewPage(entityId: entityId, homeAssistant: widget.homeAssistant),
+          builder: (context) => EntityViewPage(entityId: entityId),
         )
     );
   }
@@ -520,8 +517,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
 
-      if (widget.homeAssistant.ui.views.isNotEmpty) {
-        widget.homeAssistant.ui.views.forEach((HAView view) {
+      if (HomeAssistant().ui.views.isNotEmpty) {
+        HomeAssistant().ui.views.forEach((HAView view) {
           result.add(view.buildTab());
         });
       }
@@ -533,7 +530,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     List<Widget> menuItems = [];
     menuItems.add(
         UserAccountsDrawerHeader(
-          accountName: Text(widget.homeAssistant.userName),
+          accountName: Text(HomeAssistant().userName),
           accountEmail: Text(ConnectionManager().displayHostname ?? "Not configured"),
           /*onDetailsPressed: () {
             setState(() {
@@ -542,7 +539,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           },*/
           currentAccountPicture: CircleAvatar(
             child: Text(
-              widget.homeAssistant.userAvatarText,
+              HomeAssistant().userAvatarText,
               style: TextStyle(
                   fontSize: 32.0
               ),
@@ -550,8 +547,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           ),
         )
     );
-      if (widget.homeAssistant.panels.isNotEmpty) {
-        widget.homeAssistant.panels.forEach((Panel panel) {
+      if (HomeAssistant().panels.isNotEmpty) {
+        HomeAssistant().panels.forEach((Panel panel) {
           if (!panel.isHidden) {
             menuItems.add(
                 new ListTile(
@@ -581,7 +578,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           title: Text("Connection settings"),
           onTap: () {
             Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/connection-settings', arguments: {"homeAssistant", widget.homeAssistant});
+            Navigator.of(context).pushNamed('/connection-settings');
           },
         )
       ]);
@@ -820,7 +817,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             floating: true,
             pinned: true,
             primary: true,
-            title: Text(widget.homeAssistant.locationName ?? ""),
+            title: Text(HomeAssistant().locationName ?? ""),
             actions: <Widget>[
               IconButton(
                 icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
@@ -834,7 +831,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                     if (val == "reload") {
                       _quickLoad();
                     } else if (val == "logout") {
-                      widget.homeAssistant.logout().then((_) {
+                      HomeAssistant().logout().then((_) {
                         _quickLoad();
                       });
                     }
@@ -865,7 +862,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
       )
           :
-      widget.homeAssistant.buildViews(context, _viewsTabController),
+      HomeAssistant().buildViews(context, _viewsTabController),
     );
   }
 
@@ -922,7 +919,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       }
     }
     // This method is rerun every time setState is called.
-    if (widget.homeAssistant.isNoViews) {
+    if (HomeAssistant().isNoViews) {
       return Scaffold(
         key: _scaffoldKey,
         primary: false,
