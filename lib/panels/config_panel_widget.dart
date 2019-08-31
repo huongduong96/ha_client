@@ -23,7 +23,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
     await prefs.reload();
     SharedPreferences.getInstance().then((prefs) {
       setState(() {
-        locationInterval = prefs.getInt("location-interval") ?? 10;
+        locationInterval = prefs.getInt("location-interval") ?? LocationManager().defaultUpdateIntervalMinutes;
       });
     });
   }

@@ -300,6 +300,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
     ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
+      LocationManager().updateDeviceLocation();
       _fetchData();
     }, onError: (e) {
       _setErrorState(e);
