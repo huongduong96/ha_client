@@ -36,7 +36,7 @@ class Panel {
           )
       );
     } else {
-      String url = "${Connection().httpWebHost}/$urlPath";
+      String url = "${ConnectionManager().httpWebHost}/$urlPath";
       Logger.d("Launching custom tab with $url");
       HAUtils.launchURLInCustomTab(context: context, url: url);
     }

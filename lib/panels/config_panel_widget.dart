@@ -57,7 +57,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
       positiveText: "Sure. Make it so",
       negativeText: "What?? No!",
       onPositive: () {
-        Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
+        ConnectionManager().callService(domain: "homeassistant", service: "restart", entityId: null);
       },
     ));
   }
@@ -69,7 +69,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
       positiveText: "Sure. Make it so",
       negativeText: "What?? No!",
       onPositive: () {
-        Connection().callService(domain: "homeassistant", service: "stop", entityId: null);
+        ConnectionManager().callService(domain: "homeassistant", service: "stop", entityId: null);
       },
     ));
   }
@@ -108,7 +108,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 ),
                 Text("Registration", style: TextStyle(fontSize: Sizes.largeFontSize-2)),
                 Container(height: Sizes.rowPadding,),
-                Text("${HomeAssistant().userName}'s ${Device().model}, ${Device().osName} ${Device().osVersion}"),
+                Text("${HomeAssistant().userName}'s ${DeviceInfoManager().model}, ${DeviceInfoManager().osName} ${DeviceInfoManager().osVersion}"),
                 Container(height: 6.0,),
                 Text("Here you can manually check if HA Client integration with your Home Assistant works fine. As mobileApp integration in Home Assistant is still in development, this is not 100% correct check."),
                 //Divider(),
@@ -154,19 +154,19 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
             ),
           ),
         ),
-        LinkToWebConfig(name: "Home Assistant Cloud", url: Connection().httpWebHost+"/config/cloud/account"),
+        LinkToWebConfig(name: "Home Assistant Cloud", url: ConnectionManager().httpWebHost+"/config/cloud/account"),
         Container(height: 8.0,),
-        LinkToWebConfig(name: "Integrations", url: Connection().httpWebHost+"/config/integrations/dashboard"),
-        LinkToWebConfig(name: "Users", url: Connection().httpWebHost+"/config/users/picker"),
+        LinkToWebConfig(name: "Integrations", url: ConnectionManager().httpWebHost+"/config/integrations/dashboard"),
+        LinkToWebConfig(name: "Users", url: ConnectionManager().httpWebHost+"/config/users/picker"),
         Container(height: 8.0,),
-        LinkToWebConfig(name: "General", url: Connection().httpWebHost+"/config/core"),
-        LinkToWebConfig(name: "Server Control", url: Connection().httpWebHost+"/config/server_control"),
-        LinkToWebConfig(name: "Persons", url: Connection().httpWebHost+"/config/person"),
-        LinkToWebConfig(name: "Entity Registry", url: Connection().httpWebHost+"/config/entity_registry"),
-        LinkToWebConfig(name: "Area Registry", url: Connection().httpWebHost+"/config/area_registry"),
-        LinkToWebConfig(name: "Automation", url: Connection().httpWebHost+"/config/automation"),
-        LinkToWebConfig(name: "Script", url: Connection().httpWebHost+"/config/script"),
-        LinkToWebConfig(name: "Customization", url: Connection().httpWebHost+"/config/customize"),
+        LinkToWebConfig(name: "General", url: ConnectionManager().httpWebHost+"/config/core"),
+        LinkToWebConfig(name: "Server Control", url: ConnectionManager().httpWebHost+"/config/server_control"),
+        LinkToWebConfig(name: "Persons", url: ConnectionManager().httpWebHost+"/config/person"),
+        LinkToWebConfig(name: "Entity Registry", url: ConnectionManager().httpWebHost+"/config/entity_registry"),
+        LinkToWebConfig(name: "Area Registry", url: ConnectionManager().httpWebHost+"/config/area_registry"),
+        LinkToWebConfig(name: "Automation", url: ConnectionManager().httpWebHost+"/config/automation"),
+        LinkToWebConfig(name: "Script", url: ConnectionManager().httpWebHost+"/config/script"),
+        LinkToWebConfig(name: "Customization", url: ConnectionManager().httpWebHost+"/config/customize"),
       ],
     );
   }

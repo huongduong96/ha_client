@@ -1,14 +1,14 @@
-part of 'main.dart';
+part of '../main.dart';
 
-class Connection {
+class ConnectionManager {
 
-  static final Connection _instance = Connection._internal();
+  static final ConnectionManager _instance = ConnectionManager._internal();
 
-  factory Connection() {
+  factory ConnectionManager() {
     return _instance;
   }
 
-  Connection._internal();
+  ConnectionManager._internal();
 
   String _domain;
   String _port;

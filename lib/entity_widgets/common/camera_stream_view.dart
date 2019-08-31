@@ -47,7 +47,7 @@ class _CameraStreamViewState extends State<CameraStreamView> {
           .entity;
       started = true;
     }
-    streamUrl = '${Connection().httpWebHost}/api/camera_proxy_stream/${_entity
+    streamUrl = '${ConnectionManager().httpWebHost}/api/camera_proxy_stream/${_entity
         .entityId}?token=${_entity.attributes['access_token']}';
     return Column(
       children: <Widget>[

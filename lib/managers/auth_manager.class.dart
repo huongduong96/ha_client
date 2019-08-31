@@ -17,7 +17,7 @@ class AuthManager {
       if (url.startsWith("http://ha-client.homemade.systems/service/auth_callback.html")) {
         String authCode = url.split("=")[1];
         Logger.d("We have auth code. Getting temporary access token...");
-        Connection().sendHTTPPost(
+        ConnectionManager().sendHTTPPost(
             endPoint: "/auth/token",
             contentType: "application/x-www-form-urlencoded",
             includeAuthHeader: false,

@@ -47,7 +47,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
     }
     if (_historyLastUpdated == null || now.difference(_historyLastUpdated).inSeconds > 30) {
       _historyLastUpdated = now;
-      Connection().getHistory(entityId).then((history){
+      ConnectionManager().getHistory(entityId).then((history){
         if (!_disposed) {
           setState(() {
             _history = history.isNotEmpty ? history[0] : [];

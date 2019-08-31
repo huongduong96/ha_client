@@ -4,10 +4,10 @@ class MobileAppIntegrationManager {
 
   static final _appRegistrationData = {
     "app_version": "$appVersion",
-    "device_name": "${HomeAssistant().userName}'s ${Device().model}",
-    "manufacturer": Device().manufacturer,
-    "model": Device().model,
-    "os_version": Device().osVersion,
+    "device_name": "${HomeAssistant().userName}'s ${DeviceInfoManager().model}",
+    "manufacturer": DeviceInfoManager().manufacturer,
+    "model": DeviceInfoManager().model,
+    "os_version": DeviceInfoManager().osVersion,
     "app_data": {
       "push_token": "${HomeAssistant().fcmToken}",
       "push_url": "https://us-central1-ha-client-c73c4.cloudfunctions.net/sendPushNotification"
@@ -16,16 +16,16 @@ class MobileAppIntegrationManager {
 
   static Future checkAppRegistration({bool forceRegister: false, bool showOkDialog: false}) {
     Completer completer = Completer();
-    if (Connection().webhookId == null || forceRegister) {
+    if (ConnectionManager().webhookId == null || forceRegister) {
       Logger.d("Mobile app was not registered yet or need to be reseted. Registering...");
       var registrationData = Map.from(_appRegistrationData);
       registrationData.addAll({
         "app_id": "ha_client",
         "app_name": "$appName",
-        "os_name": Device().osName,
+        "os_name": DeviceInfoManager().osName,
         "supports_encryption": false,
       });
-      Connection().sendHTTPPost(
+      ConnectionManager().sendHTTPPost(
           endPoint: "/api/mobile_app/registrations",
           includeAuthHeader: true,
           data: json.encode(registrationData)
@@ -34,7 +34,7 @@ class MobileAppIntegrationManager {
         var responseObject = json.decode(response);
         SharedPreferences.getInstance().then((prefs) {
           prefs.setString("app-webhook-id", responseObject["webhook_id"]);
-          Connection().webhookId = responseObject["webhook_id"];
+          ConnectionManager().webhookId = responseObject["webhook_id"];
           completer.complete();
           eventBus.fire(ShowPopupDialogEvent(
             title: "Mobile app Integration was created",
@@ -42,7 +42,7 @@ class MobileAppIntegrationManager {
             positiveText: "Restart now",
             negativeText: "Later",
             onPositive: () {
-              Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
+              ConnectionManager().callService(domain: "homeassistant", service: "restart", entityId: null);
             },
           ));
         });
@@ -57,8 +57,8 @@ class MobileAppIntegrationManager {
         "type": "update_registration",
         "data": _appRegistrationData
       };
-      Connection().sendHTTPPost(
-          endPoint: "/api/webhook/${Connection().webhookId}",
+      ConnectionManager().sendHTTPPost(
+          endPoint: "/api/webhook/${ConnectionManager().webhookId}",
           includeAuthHeader: false,
           data: json.encode(updateData)
       ).then((response) {
@@ -111,7 +111,7 @@ class MobileAppIntegrationManager {
       onPositive: () {
         SharedPreferences.getInstance().then((prefs) {
           prefs.remove("app-webhook-id");
-          Connection().webhookId = null;
+          ConnectionManager().webhookId = null;
           checkAppRegistration();
         });
       },

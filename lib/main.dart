@@ -104,8 +104,8 @@ part 'entity_collection.class.dart';
 part 'managers/auth_manager.class.dart';
 part 'managers/location_manager.class.dart';
 part 'managers/mobile_app_integration_manager.class.dart';
-part 'connection.class.dart';
-part 'device.class.dart';
+part 'managers/connection_manager.class.dart';
+part 'managers/device_info_manager.class.dart';
 part 'ui_class/ui.dart';
 part 'ui_class/view.class.dart';
 part 'ui_class/card.class.dart';
@@ -166,7 +166,7 @@ class HAClientApp extends StatelessWidget {
         "/putchase": (context) => PurchasePage(title: "Support app development"),
         "/log-view": (context) => LogViewPage(title: "Log"),
         "/login": (context) => WebviewScaffold(
-          url: "${Connection().oauthUrl}",
+          url: "${ConnectionManager().oauthUrl}",
           appBar: new AppBar(
             leading: IconButton(
                 icon: Icon(Icons.help),
@@ -287,7 +287,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   void _fullLoad() async {
     _showInfoBottomBar(progress: true,);
     _subscribe().then((_) {
-      Connection().init(loadSettings: true, forceReconnect: true).then((__){
+      ConnectionManager().init(loadSettings: true, forceReconnect: true).then((__){
         LocationManager();
         _fetchData();
       }, onError: (e) {
@@ -299,7 +299,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   void _quickLoad() {
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
-    Connection().init(loadSettings: false, forceReconnect: false).then((_){
+    ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
       _fetchData();
     }, onError: (e) {
       _setErrorState(e);
@@ -328,7 +328,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     Logger.d("$state");
-    if (state == AppLifecycleState.resumed && Connection().settingsLoaded) {
+    if (state == AppLifecycleState.resumed && ConnectionManager().settingsLoaded) {
       _quickLoad();
     }
   }
@@ -486,7 +486,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       message: "Calling $domain.$service",
       duration: Duration(seconds: 3)
     );
-    Connection().callService(domain: domain, service: service, entityId: entityId, additionalServiceData: additionalParams).catchError((e) => _setErrorState(e));
+    ConnectionManager().callService(domain: domain, service: service, entityId: entityId, additionalServiceData: additionalParams).catchError((e) => _setErrorState(e));
   }
 
   void _showEntityPage(String entityId) {
@@ -515,7 +515,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     menuItems.add(
         UserAccountsDrawerHeader(
           accountName: Text(widget.homeAssistant.userName),
-          accountEmail: Text(Connection().displayHostname ?? "Not configured"),
+          accountEmail: Text(ConnectionManager().displayHostname ?? "Not configured"),
           /*onDetailsPressed: () {
             setState(() {
               _accountMenuExpanded = !_accountMenuExpanded;
@@ -552,7 +552,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(Connection().httpWebHost),
+            onTap: () => HAUtils.launchURL(ConnectionManager().httpWebHost),
           )
       );
       menuItems.addAll([
@@ -777,7 +777,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     List<Widget> emptyBody = [
       Text("."),
     ];
-    if (Connection().isAuthenticated) {
+    if (ConnectionManager().isAuthenticated) {
       _showLoginButton = false;
       popupMenuItems.add(
           PopupMenuItem<String>(

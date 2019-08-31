@@ -1,10 +1,10 @@
-part of 'main.dart';
+part of '../main.dart';
 
-class Device {
+class DeviceInfoManager {
 
-  static final Device _instance = Device._internal();
+  static final DeviceInfoManager _instance = DeviceInfoManager._internal();
 
-  factory Device() {
+  factory DeviceInfoManager() {
     return _instance;
   }
 
@@ -14,7 +14,7 @@ class Device {
   String osName;
   String osVersion;
 
-  Device._internal();
+  DeviceInfoManager._internal();
 
   loadDeviceInfo() {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();

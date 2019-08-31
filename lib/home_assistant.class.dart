@@ -23,7 +23,7 @@ class HomeAssistant {
   Duration fetchTimeout = Duration(seconds: 30);
 
   String get locationName {
-    if (Connection().useLovelace) {
+    if (ConnectionManager().useLovelace) {
       return ui?.title ?? "";
     } else {
       return _instanceConfig["location_name"] ?? "";
@@ -36,8 +36,8 @@ class HomeAssistant {
   bool get isMobileAppEnabled => _instanceConfig["components"] != null && (_instanceConfig["components"] as List).contains("mobile_app");
 
   HomeAssistant._internal() {
-    Connection().onStateChangeCallback = _handleEntityStateChange;
-    Device().loadDeviceInfo();
+    ConnectionManager().onStateChangeCallback = _handleEntityStateChange;
+    DeviceInfoManager().loadDeviceInfo();
   }
 
   Completer _fetchCompleter;
@@ -47,18 +47,18 @@ class HomeAssistant {
       Logger.w("Previous data fetch is not completed yet");
       return _fetchCompleter.future;
     }
-    if (entities == null) entities = EntityCollection(Connection().httpWebHost);
+    if (entities == null) entities = EntityCollection(ConnectionManager().httpWebHost);
     _fetchCompleter = Completer();
     List<Future> futures = [];
     futures.add(_getStates());
-    if (Connection().useLovelace) {
+    if (ConnectionManager().useLovelace) {
       futures.add(_getLovelace());
     }
     futures.add(_getConfig());
     futures.add(_getServices());
     futures.add(_getUserInfo());
     futures.add(_getPanels());
-    futures.add(Connection().sendSocketMessage(
+    futures.add(ConnectionManager().sendSocketMessage(
       type: "subscribe_events",
       additionalData: {"event_type": "state_changed"},
     ));
@@ -78,7 +78,7 @@ class HomeAssistant {
 
   Future logout() async {
     Logger.d("Logging out...");
-    await Connection().logout().then((_) {
+    await ConnectionManager().logout().then((_) {
       ui?.clear();
       entities?.clear();
       panels?.clear();
@@ -86,7 +86,7 @@ class HomeAssistant {
   }
 
   Future _getConfig() async {
-    await Connection().sendSocketMessage(type: "get_config").then((data) {
+    await ConnectionManager().sendSocketMessage(type: "get_config").then((data) {
       _instanceConfig = Map.from(data);
     }).catchError((e) {
       throw HAError("Error getting config: ${e}");
@@ -94,7 +94,7 @@ class HomeAssistant {
   }
 
   Future _getStates() async {
-    await Connection().sendSocketMessage(type: "get_states").then(
+    await ConnectionManager().sendSocketMessage(type: "get_states").then(
             (data) => entities.parse(data)
     ).catchError((e) {
       throw HAError("Error getting states: $e");
@@ -102,27 +102,27 @@ class HomeAssistant {
   }
 
   Future _getLovelace() async {
-    await Connection().sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
+    await ConnectionManager().sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
       throw HAError("Error getting lovelace config: $e");
     });
   }
 
   Future _getUserInfo() async {
     _userName = null;
-    await Connection().sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
+    await ConnectionManager().sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
       Logger.w("Can't get user info: ${e}");
     });
   }
 
   Future _getServices() async {
-    await Connection().sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
+    await ConnectionManager().sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
       Logger.w("Can't get services: ${e}");
     });
   }
 
   Future _getPanels() async {
     panels.clear();
-    await Connection().sendSocketMessage(type: "get_panels").then((data) {
+    await ConnectionManager().sendSocketMessage(type: "get_panels").then((data) {
       data.forEach((k,v) {
         String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
         panels.add(Panel(
@@ -305,7 +305,7 @@ class HomeAssistant {
 
   void _createUI() {
     ui = HomeAssistantUI();
-    if ((Connection().useLovelace) && (_rawLovelaceData != null)) {
+    if ((ConnectionManager().useLovelace) && (_rawLovelaceData != null)) {
       Logger.d("Creating Lovelace UI");
       _parseLovelace();
     } else {
