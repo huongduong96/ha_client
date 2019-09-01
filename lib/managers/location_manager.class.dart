@@ -90,31 +90,9 @@ class LocationManager {
     if (enabled) {
       if (ConnectionManager().webhookId != null &&
           ConnectionManager().webhookId.isNotEmpty) {
-        DateTime currentTime = DateTime.now();
-        String timeData = "${currentTime.year}-${currentTime
-            .month}-${currentTime.day} ${currentTime.hour}:${currentTime
-            .minute}";
-        print("[Location] Sending test time data home...");
         String url = "${ConnectionManager()
             .httpWebHost}/api/webhook/${ConnectionManager().webhookId}";
         Map<String, String> headers = {};
-        headers["Content-Type"] = "application/json";
-        var data = {
-          "type": "call_service",
-          "data": {
-            "domain": "input_datetime",
-            "service": "set_datetime",
-            "service_data": {
-              "entity_id": "input_datetime.app_alarm_service_test",
-              "datetime": timeData
-            }
-          }
-        };
-        await http.post(
-            url,
-            headers: headers,
-            body: json.encode(data)
-        );
         Logger.d("[Location] Getting device location...");
         Position location = await Geolocator().getCurrentPosition(
             desiredAccuracy: LocationAccuracy.medium);
@@ -123,7 +101,7 @@ class LocationManager {
         int battery = DateTime
             .now()
             .hour;
-        data = {
+        var data = {
           "type": "update_location",
           "data": {
             "gps": [location.latitude, location.longitude],
@@ -131,6 +109,7 @@ class LocationManager {
             "battery": battery
           }
         };
+        headers["Content-Type"] = "application/json";
         await http.post(
             url,
             headers: headers,
