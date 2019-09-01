@@ -13,8 +13,8 @@ class StartupUserMessagesManager {
 
   bool _locationTrackingMessageShown;
   bool _supportAppDevelopmentMessageShown;
-  static final _locationTrackingMessageKey = "user-message-shown-location_1";
-  static final _supportAppDevelopmentMessageKey = "user-message-shown-support-development_1";
+  static final _locationTrackingMessageKey = "user-message-shown-location_3";
+  static final _supportAppDevelopmentMessageKey = "user-message-shown-support-development_3";
 
   void checkMessagesToShow() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -35,7 +35,10 @@ class StartupUserMessagesManager {
       positiveText: "Enable now",
       negativeText: "Cancel",
       onPositive: () {
-        LocationManager().setSettings(true, 15);
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool(_locationTrackingMessageKey, true);
+          LocationManager().setSettings(true, 15);
+        });
       },
       onNegative: () {
         SharedPreferences.getInstance().then((prefs) {
@@ -54,7 +57,7 @@ class StartupUserMessagesManager {
         onPositive: () {
           SharedPreferences.getInstance().then((prefs) {
             prefs.setBool(_supportAppDevelopmentMessageKey, true);
-            eventBus.fire(ShowPageEvent(path: "/configuration"));
+            eventBus.fire(ShowPageEvent(path: "/putchase"));
           });
         },
         onNegative: () {
