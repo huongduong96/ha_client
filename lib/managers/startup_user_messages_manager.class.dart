@@ -59,7 +59,7 @@ class StartupUserMessagesManager {
         onPositive: () {
           SharedPreferences.getInstance().then((prefs) {
             prefs.setBool(_supportAppDevelopmentMessageKey, true);
-            eventBus.fire(ShowPageEvent("/configuration"));
+            eventBus.fire(ShowPageEvent(path: "/configuration"));
           });
         },
         onNegative: () {

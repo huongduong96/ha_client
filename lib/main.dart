@@ -176,8 +176,7 @@ class HAClientApp extends StatelessWidget {
               FlatButton(
                 child: Text("Manual", style: TextStyle(color: Colors.white)),
                 onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushNamed("/connection-settings");
+                  eventBus.fire(ShowPageEvent(path: "/connection-settings", goBackFirst: true));
                 },
               )
             ],
@@ -212,6 +211,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _showPageSubscription;
   int _previousViewCount;
   bool _showLoginButton = false;
+  bool _preventAppRefresh = false;
 
   @override
   void initState() {
@@ -255,6 +255,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
+        _preventAppRefresh = false;
         _fullLoad();
       }
     });
@@ -332,7 +333,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     Logger.d("$state");
-    if (state == AppLifecycleState.resumed && ConnectionManager().settingsLoaded) {
+    if (state == AppLifecycleState.resumed && ConnectionManager().settingsLoaded && !_preventAppRefresh) {
       _quickLoad();
     }
   }
@@ -411,7 +412,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     if (_showPageSubscription == null) {
       _showPageSubscription =
           eventBus.on<ShowPageEvent>().listen((event) {
-            _showPage(event.path);
+            _showPage(event.path, event.goBackFirst);
           });
     }
 
@@ -429,6 +430,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         if (event.showButton) {
           _showOAuth();
         } else {
+          _preventAppRefresh = false;
           Navigator.of(context).pop();
         }
       });
@@ -442,6 +444,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _showOAuth() {
+    _preventAppRefresh = true;
     Navigator.of(context).pushNamed('/login');
   }
 
@@ -509,7 +512,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     );
   }
 
-  void _showPage(String path) {
+  void _showPage(String path, bool goBackFirst) {
+    if (goBackFirst) {
+      Navigator.pop(context);
+    }
     Navigator.pushNamed(
         context,
         path

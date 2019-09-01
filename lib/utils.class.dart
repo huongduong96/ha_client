@@ -200,9 +200,10 @@ class ShowEntityPageEvent {
 }
 
 class ShowPageEvent {
-  String path;
+  final String path;
+  final bool goBackFirst;
 
-  ShowPageEvent(this.path);
+  ShowPageEvent({@required this.path, this.goBackFirst: false});
 }
 
 class ShowErrorEvent {
