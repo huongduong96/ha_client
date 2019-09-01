@@ -35,12 +35,7 @@ class StartupUserMessagesManager {
       positiveText: "Enable now",
       negativeText: "Cancel",
       onPositive: () {
-        SharedPreferences.getInstance().then((prefs) {
-          prefs.setBool("location-enabled", true);
-          prefs.setBool(_locationTrackingMessageKey, true);
-          LocationManager().startLocationService();
-          LocationManager().updateDeviceLocation();
-        });
+        LocationManager().setSettings(true, 15);
       },
       onNegative: () {
         SharedPreferences.getInstance().then((prefs) {

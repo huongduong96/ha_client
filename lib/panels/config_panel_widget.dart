@@ -11,7 +11,6 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
 
   int _locationInterval = LocationManager().defaultUpdateIntervalMinutes;
   bool _locationTrackingEnabled = false;
-  bool _needToRestartLocationTracking = false;
 
   @override
   void initState() {
@@ -31,23 +30,17 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   void incLocationInterval() {
-    _needToRestartLocationTracking = true;
     if (_locationInterval < 720) {
       setState(() {
         _locationInterval = _locationInterval + 1;
       });
-      SharedPreferences.getInstance().then((prefs) => prefs.setInt("location-interval", _locationInterval));
     }
   }
 
   void decLocationInterval() {
-    _needToRestartLocationTracking = true;
     if (_locationInterval > 1) {
       setState(() {
         _locationInterval = _locationInterval - 1;
-      });
-      SharedPreferences.getInstance().then((prefs) {
-        prefs.setInt("location-interval", _locationInterval);
       });
     }
   }
@@ -142,7 +135,6 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                         SharedPreferences.getInstance().then((prefs) => prefs.setBool("location-enabled", value));
                         setState(() {
                           _locationTrackingEnabled = value;
-                          _needToRestartLocationTracking = true;
                         });
                       },
                     ),
@@ -191,13 +183,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
 
   @override
   void dispose() {
-    if (_needToRestartLocationTracking) {
-      Logger.d("Location tracking settings was changed. Restarting location service...");
-      LocationManager().startLocationService();
-      if (_locationTrackingEnabled) {
-        LocationManager().updateDeviceLocation();
-      }
-    }
+    LocationManager().setSettings(_locationTrackingEnabled, _locationInterval);
     super.dispose();
   }
 }

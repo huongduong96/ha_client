@@ -52,42 +52,66 @@ class LocationManager {
   }
 
   LocationManager._internal() {
-    startLocationService();
+    init();
   }
 
   final int defaultUpdateIntervalMinutes = 15;
   final int alarmId = 34901199;
+  Duration _updateInterval;
+  bool _isEnabled;
 
-  void startLocationService() async {
+  void init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.reload();
-    bool enabled = prefs.getBool("location-enabled") ?? false;
-    if (enabled) {
-      Duration locationUpdateInterval = Duration(
-          minutes: prefs.getInt("location-interval") ??
-              defaultUpdateIntervalMinutes);
-      Logger.d("Scheduling location update for every ${locationUpdateInterval
-          .inMinutes} minutes...");
-      await AndroidAlarmManager.periodic(
-          locationUpdateInterval,
-          alarmId,
-          LocationManager.updateDeviceLocationIsolate,
-          wakeup: true,
-          rescheduleOnReboot: true
-      );
-    } else {
-      Logger.d("Location tracking is disabled");
-      Logger.d("Canceling previous schedule if any...");
-      await AndroidAlarmManager.cancel(alarmId);
+    _updateInterval = Duration(minutes: prefs.getInt("location-interval") ??
+        defaultUpdateIntervalMinutes);
+    _isEnabled = prefs.getBool("location-enabled") ?? false;
+    if (_isEnabled) {
+      _startLocationService();
     }
   }
 
-  void updateDeviceLocation() async {
-    print("[Location] started");
+  void setSettings(bool enabled, int interval) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-    bool enabled = prefs.getBool("location-enabled") ?? false;
-    if (enabled) {
+    if (interval != _updateInterval.inMinutes) {
+      prefs.setInt("location-interval", interval);
+      _updateInterval = Duration(minutes: interval);
+    }
+    if (enabled && !_isEnabled) {
+      Logger.d("Enabling location service");
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("location-enabled", enabled);
+      _isEnabled = true;
+      _startLocationService();
+      updateDeviceLocation();
+    } else if (!enabled && _isEnabled) {
+      Logger.d("Disabling location service");
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("location-enabled", enabled);
+      _isEnabled = false;
+      _stopLocationService();
+    }
+  }
+
+  void _startLocationService() async {
+    Logger.d("Scheduling location update for every ${_updateInterval
+        .inMinutes} minutes...");
+    await AndroidAlarmManager.periodic(
+        _updateInterval,
+        alarmId,
+        LocationManager.updateDeviceLocationIsolate,
+        wakeup: true,
+        rescheduleOnReboot: true
+    );
+  }
+
+  void _stopLocationService() async {
+    Logger.d("Canceling previous schedule if any...");
+    await AndroidAlarmManager.cancel(alarmId);
+  }
+
+  void updateDeviceLocation() async {
+    if (_isEnabled) {
       if (ConnectionManager().webhookId != null &&
           ConnectionManager().webhookId.isNotEmpty) {
         String url = "${ConnectionManager()
