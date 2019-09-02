@@ -16,26 +16,22 @@ class LocationManager {
         Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.medium).then((location) {
           Logger.d("[Location isolate #${Isolate.current.hashCode}] Got location: ${location.latitude} ${location.longitude}. Sending home...");
           int battery = DateTime.now().hour;
-          try {
-            String url = "$httpWebHost/api/webhook/$webhookId";
-            Map<String, String> headers = {};
-            headers["Content-Type"] = "application/json";
-            var data = {
-              "type": "update_location",
-              "data": {
-                "gps": [location.latitude, location.longitude],
-                "gps_accuracy": location.accuracy,
-                "battery": battery
-              }
-            };
-            http.post(
-                url,
-                headers: headers,
-                body: json.encode(data)
-            );
-          } catch (e) {
-            print("[Location isolate #${Isolate.current.hashCode}] Error sending location: ${e.toString()}");
-          }
+          String url = "$httpWebHost/api/webhook/$webhookId";
+          Map<String, String> headers = {};
+          headers["Content-Type"] = "application/json";
+          var data = {
+            "type": "update_location",
+            "data": {
+              "gps": [location.latitude, location.longitude],
+              "gps_accuracy": location.accuracy,
+              "battery": battery
+            }
+          };
+          http.post(
+              url,
+              headers: headers,
+              body: json.encode(data)
+          ).catchError((e) => print("[Location isolate #${Isolate.current.hashCode}] Error sending data: ${e.toString()}"));
         });
 
       } else {
@@ -141,7 +137,7 @@ class LocationManager {
         );
         Logger.d("[Location] ...done.");
       } else {
-        print("[Location] No webhook id. Aborting");
+        Logger.d("[Location] No webhook id. Aborting");
       }
     } else {
       Logger.d("[Location] Location tracking is disabled");
