@@ -27,6 +27,7 @@ import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:geolocator/geolocator.dart';
 
 part 'const.dart';
+part 'utils/launcher.dart';
 part 'entities/entity.class.dart';
 part 'entities/entity_wrapper.class.dart';
 part 'entities/timer/timer_entity.class.dart';
@@ -169,7 +170,7 @@ class HAClientApp extends StatelessWidget {
           appBar: new AppBar(
             leading: IconButton(
                 icon: Icon(Icons.help),
-                onPressed: () => HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/docs#authentication")
+                onPressed: () => Launcher.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/docs#authentication")
             ),
             title: new Text("Login with HA"),
             actions: <Widget>[
@@ -549,11 +550,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         UserAccountsDrawerHeader(
           accountName: Text(HomeAssistant().userName),
           accountEmail: Text(ConnectionManager().displayHostname ?? "Not configured"),
-          /*onDetailsPressed: () {
-            setState(() {
-              _accountMenuExpanded = !_accountMenuExpanded;
+          onDetailsPressed: () {
+            final flutterWebViewPlugin = new FlutterWebviewPlugin();
+            flutterWebViewPlugin.onStateChanged.listen((viewState) async {
+              if (viewState.type == WebViewState.startLoad) {
+                Logger.d("[WebView] Injecting external auth JS");
+                rootBundle.loadString('assets/js/externalAuth.js').then((js){
+                  flutterWebViewPlugin.evalJavascript(js.replaceFirst("[token]", ConnectionManager()._token));
+                });
+              }
             });
-          },*/
+            Navigator.of(context).pushNamed(
+                "/webview",
+                arguments: {
+                  "url": "${ConnectionManager().httpWebHost}/profile?external_auth=1",
+                  "title": "Profile"
+                }
+            );
+          },
           currentAccountPicture: CircleAvatar(
             child: Text(
               HomeAssistant().userAvatarText,
@@ -570,7 +584,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             menuItems.add(
                 new ListTile(
                     leading: Icon(MaterialDesignIcons.getIconDataFromIconName(panel.icon)),
-                    title: Text("${panel.title}"),
+                    title: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text("${panel.title}"),
+                        Container(width: 4.0,),
+                        panel.isWebView ? Text("webview", style: TextStyle(fontSize: 8.0, color: Colors.black45),) : Container(width: 1.0,)
+                      ],
+                    ),
                     onTap: () {
                       Navigator.of(context).pop();
                       panel.handleOpen(context);
@@ -580,14 +601,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           }
         });
       }
-      //TODO check for loaded
-      menuItems.add(
-          new ListTile(
-            leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
-            title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(ConnectionManager().httpWebHost),
-          )
-      );
       menuItems.addAll([
         Divider(),
         ListTile(
@@ -614,7 +627,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           title: Text("Report an issue"),
           onTap: () {
             Navigator.of(context).pop();
-            HAUtils.launchURL("https://github.com/estevez-dev/ha_client/issues/new");
+            Launcher.launchURL("https://github.com/estevez-dev/ha_client/issues/new");
           },
         ),
         Divider(),
@@ -632,7 +645,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           title: Text("Help"),
           onTap: () {
             Navigator.of(context).pop();
-            HAUtils.launchURL("http://ha-client.homemade.systems/docs");
+            Launcher.launchURL("http://ha-client.homemade.systems/docs");
           },
         ),
         new ListTile(
@@ -640,7 +653,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           title: Text("Join Discord channel"),
           onTap: () {
             Navigator.of(context).pop();
-            HAUtils.launchURL("https://discord.gg/AUzEvwn");
+            Launcher.launchURL("https://discord.gg/AUzEvwn");
           },
         ),
         new AboutListTile(
@@ -648,7 +661,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURL("http://ha-client.homemade.systems/");
+                Launcher.launchURL("http://ha-client.homemade.systems/");
               },
               child: Text(
                 "ha-client.homemade.systems",
@@ -664,7 +677,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/terms_and_conditions");
+                Launcher.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/terms_and_conditions");
               },
               child: Text(
                 "Terms and Conditions",
@@ -680,7 +693,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/privacy_policy");
+                Launcher.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/privacy_policy");
               },
               child: Text(
                 "Privacy Policy",
@@ -765,7 +778,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           actions.add(FlatButton(
             child: Text("${action.title}", style: textStyle),
             onPressed: () {
-              HAUtils.launchURLInCustomTab(context: context, url: "${action.url}");
+              Launcher.launchURLInCustomTab(context: context, url: "${action.url}");
             },
           ));
           break;

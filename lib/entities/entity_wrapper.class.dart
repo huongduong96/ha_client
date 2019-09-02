@@ -60,7 +60,7 @@ class EntityWrapper {
           //TODO handle local urls
           Logger.w("Local urls is not supported yet");
         } else {
-          HAUtils.launchURL(uiAction.tapService);
+          Launcher.launchURL(uiAction.tapService);
         }
         break;
       }
@@ -100,7 +100,7 @@ class EntityWrapper {
             //TODO handle local urls
             Logger.w("Local urls is not supported yet");
           } else {
-            HAUtils.launchURL(uiAction.holdService);
+            Launcher.launchURL(uiAction.holdService);
           }
           break;
         }

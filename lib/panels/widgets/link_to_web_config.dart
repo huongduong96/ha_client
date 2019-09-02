@@ -18,7 +18,9 @@ class LinkToWebConfig extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: new TextStyle(fontWeight: FontWeight.bold, fontSize: Sizes.largeFontSize)),
             subtitle: Text("Tap to opne web version"),
-            onTap: () => HAUtils.launchURLInCustomTab(context: context, url: this.url),
+            onTap: () {
+              Launcher.launchAuthenticatedWebView(context: context, url: this.url, title: this.name);
+            },
           )
         ],
       ),

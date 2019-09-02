@@ -89,10 +89,10 @@ class MobileAppIntegrationManager {
             positiveText: "Report to GitHub",
             negativeText: "Report to Discord",
             onPositive: () {
-              HAUtils.launchURL("https://github.com/estevez-dev/ha_client/issues/new");
+              Launcher.launchURL("https://github.com/estevez-dev/ha_client/issues/new");
             },
             onNegative: () {
-              HAUtils.launchURL("https://discord.gg/AUzEvwn");
+              Launcher.launchURL("https://discord.gg/AUzEvwn");
             },
           ));
         }
