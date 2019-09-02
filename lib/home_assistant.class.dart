@@ -191,7 +191,7 @@ class HomeAssistant {
         HACard card = HACard(
             id: "card",
             name: rawCardInfo["title"] ?? rawCardInfo["name"],
-            type: rawCardInfo['type'],
+            type: rawCardInfo['type'] ?? CardType.entities,
             columnsCount: rawCardInfo['columns'] ?? 4,
             showName: rawCardInfo['show_name'] ?? true,
             showState: rawCardInfo['show_state'] ?? true,
