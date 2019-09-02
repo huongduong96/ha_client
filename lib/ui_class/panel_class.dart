@@ -22,23 +22,35 @@ class Panel {
     if (icon == null || !icon.startsWith("mdi:")) {
       icon = Panel.iconsByComponent[type];
     }
-    isHidden = (type != "iframe" && type != "config");
+    Logger.d("New panel '$title'. type=$type, icon=$icon, urlPath=$urlPath");
+    isHidden = (type == 'lovelace' || type == 'kiosk' || type == 'states');
   }
 
   void handleOpen(BuildContext context) {
-    if (type == "iframe") {
-      Logger.d("Launching custom tab with ${config["url"]}");
-      HAUtils.launchURLInCustomTab(context: context, url: config["url"]);
-    } else if (type == "config") {
+    if (type == "config") {
       Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => PanelPage(title: "$title", panel: this),
           )
       );
     } else {
-      String url = "${ConnectionManager().httpWebHost}/$urlPath";
-      Logger.d("Launching custom tab with $url");
-      HAUtils.launchURLInCustomTab(context: context, url: url);
+      String url = "${ConnectionManager().httpWebHost}/$urlPath?external_auth=1";
+      final flutterWebViewPlugin = new FlutterWebviewPlugin();
+      flutterWebViewPlugin.onStateChanged.listen((viewState) async {
+        if (viewState.type == WebViewState.startLoad) {
+          Logger.d("[WebView] Injecting external auth JS");
+          rootBundle.loadString('assets/js/externalAuth.js').then((js){
+            flutterWebViewPlugin.evalJavascript(js.replaceFirst("[token]", ConnectionManager()._token));
+          });
+        }
+      });
+      Navigator.of(context).pushNamed(
+          "/webview",
+          arguments: {
+            "url": "$url",
+            "title": "${this.title}"
+          }
+      );
     }
   }
 

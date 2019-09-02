@@ -134,10 +134,10 @@ void main() async {
   };
 
   runZoned(() {
-    AndroidAlarmManager.initialize().then((_) {
+    //AndroidAlarmManager.initialize().then((_) {
       runApp(new HAClientApp());
-      print("Running MAIN isolate ${Isolate.current.hashCode}");
-    });
+    //  print("Running MAIN isolate ${Isolate.current.hashCode}");
+    //});
 
   }, onError: (error, stack) {
     Logger.e("$error");
@@ -180,6 +180,16 @@ class HAClientApp extends StatelessWidget {
                 },
               )
             ],
+          ),
+        ),
+        "/webview": (context) => WebviewScaffold(
+          url: "${(ModalRoute.of(context).settings.arguments as Map)['url']}",
+          appBar: new AppBar(
+            leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop()
+            ),
+            title: new Text("${(ModalRoute.of(context).settings.arguments as Map)['title']}"),
           ),
         )
       },
@@ -249,8 +259,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
-
-
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
@@ -495,6 +503,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     );
   }
 
+  //TODO remove this shit
   void _callService(String domain, String service, String entityId, Map additionalParams) {
     _showInfoBottomBar(
       message: "Calling $domain.$service",
