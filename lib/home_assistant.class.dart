@@ -68,7 +68,7 @@ class HomeAssistant {
         _fetchCompleter.complete();
         MobileAppIntegrationManager.checkAppRegistration();
       } else {
-        _fetchCompleter.completeError(HAError("Mobile app component not found", actions: [HAErrorAction.tryAgain(), HAErrorAction(type: HAErrorActionType.URL ,title: "Help",url: "http://ha-client.homemade.systems/docs#mobile-app")]));
+        _fetchCompleter.completeError(UserError(code: ErrorCode.NO_MOBILE_APP_COMPONENT));
       }
     }).catchError((e) {
       _fetchCompleter.completeError(e);
@@ -89,7 +89,7 @@ class HomeAssistant {
     await ConnectionManager().sendSocketMessage(type: "get_config").then((data) {
       _instanceConfig = Map.from(data);
     }).catchError((e) {
-      throw HAError("Error getting config: ${e}");
+      throw UserError(code: ErrorCode.ERROR_GETTING_CONFIG, message: "$e");
     });
   }
 
@@ -97,26 +97,26 @@ class HomeAssistant {
     await ConnectionManager().sendSocketMessage(type: "get_states").then(
             (data) => entities.parse(data)
     ).catchError((e) {
-      throw HAError("Error getting states: $e");
+      throw UserError(code: ErrorCode.ERROR_GETTING_STATES, message: "$e");
     });
   }
 
   Future _getLovelace() async {
     await ConnectionManager().sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
-      throw HAError("Error getting lovelace config: $e");
+      throw UserError(code: ErrorCode.ERROR_GETTING_LOVELACE_CONFIG, message: "$e");
     });
   }
 
   Future _getUserInfo() async {
     _userName = null;
     await ConnectionManager().sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
-      Logger.w("Can't get user info: ${e}");
+      Logger.w("Can't get user info: $e");
     });
   }
 
   Future _getServices() async {
     await ConnectionManager().sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
-      Logger.w("Can't get services: ${e}");
+      Logger.w("Can't get services: $e");
     });
   }
 
@@ -136,7 +136,7 @@ class HomeAssistant {
         );
       });
     }).catchError((e) {
-      throw HAError("Error getting panels list: $e");
+      throw UserError(code: ErrorCode.ERROR_GETTING_PANELS, message: "$e");
     });
   }
 

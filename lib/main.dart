@@ -114,6 +114,7 @@ part 'ui_widgets/card_widget.dart';
 part 'ui_widgets/card_header_widget.dart';
 part 'panels/config_panel_widget.dart';
 part 'panels/widgets/link_to_web_config.dart';
+part 'user_error_screen.widget.dart';
 
 
 EventBus eventBus = new EventBus();
@@ -217,8 +218,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _reloadUISubscription;
   StreamSubscription _showPageSubscription;
   int _previousViewCount;
-  bool _showLoginButton = false;
+  //bool _showLoginButton = false;
   bool _preventAppRefresh = false;
+  UserError _userError;
 
   @override
   void initState() {
@@ -292,25 +294,29 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _fullLoad() async {
+    setState(() {
+      _userError = null;
+    });
     _showInfoBottomBar(progress: true,);
     _subscribe().then((_) {
       ConnectionManager().init(loadSettings: true, forceReconnect: true).then((__){
         _fetchData();
-        StartupUserMessagesManager().checkMessagesToShow();
-      }, onError: (e) {
-        _setErrorState(e);
+      }, onError: (code) {
+        _setErrorState(code);
       });
     });
   }
 
   void _quickLoad() {
+    setState(() {
+      _userError = null;
+    });
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
     ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
       _fetchData();
-      StartupUserMessagesManager().checkMessagesToShow();
-    }, onError: (e) {
-      _setErrorState(e);
+    }, onError: (code) {
+      _setErrorState(code);
     });
   }
 
@@ -323,12 +329,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         _viewsTabController = TabController(vsync: this, length: currentViewCount);
         _previousViewCount = currentViewCount;
       }
-    }).catchError((e) {
-      if (e is HAError) {
-        _setErrorState(e);
-      } else {
-        _setErrorState(HAError(e.toString()));
-      }
+    }).catchError((code) {
+      _setErrorState(code);
     });
     eventBus.fire(RefreshDataFinishedEvent());
   }
@@ -371,7 +373,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
     if (_reloadUISubscription == null) {
       _reloadUISubscription = eventBus.on<ReloadUIEvent>().listen((event){
-        _quickLoad();
+        if (event.full)
+          _fullLoad();
+        else
+          _quickLoad();
       });
     }
     if (_showPopupDialogSubscription == null) {
@@ -421,20 +426,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     if (_showErrorSubscription == null) {
       _showErrorSubscription = eventBus.on<ShowErrorEvent>().listen((event){
-        _showErrorBottomBar(event.error);
+        _setErrorState(event.error);
       });
     }
 
     if (_startAuthSubscription == null) {
       _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
-        setState(() {
-          _showLoginButton = event.showButton;
-        });
-        if (event.showButton) {
+        if (event.starting) {
           _showOAuth();
         } else {
           _preventAppRefresh = false;
           Navigator.of(context).pop();
+          setState(() {
+            _userError = null;
+          });
         }
       });
     }
@@ -448,17 +453,27 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   void _showOAuth() {
     _preventAppRefresh = true;
+    _setErrorState(UserError(code: ErrorCode.NOT_LOGGED_IN));
     Navigator.of(context).pushNamed('/login');
   }
 
-  _setErrorState(HAError e) {
-    if (e == null) {
+  _setErrorState(error) {
+    if (error is UserError) {
+      setState(() {
+        _userError = error;
+      });
+    } else {
+      setState(() {
+        _userError = UserError(code: ErrorCode.UNKNOWN);
+      });
+    }
+    /*if (e == null) {
       _showErrorBottomBar(
         HAError("Unknown error")
       );
     } else {
       _showErrorBottomBar(e);
-    }
+    }*/
   }
 
   void _showPopupDialog({String title, String body, var onPositive, var onNegative, String positiveText, String negativeText}) {
@@ -739,6 +754,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
   }
 
+  /*
   void _showErrorBottomBar(HAError error) {
     TextStyle textStyle = TextStyle(
         color: Colors.blue,
@@ -803,7 +819,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       _bottomBarText = "${error.message}";
       _showBottomBar = true;
     });
-  }
+  }*/
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -814,18 +830,33 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       child: new Text("Reload"),
       value: "reload",
     ));
-    List<Widget> emptyBody = [
+    /*List<Widget> emptyBody = [
       Text("."),
-    ];
+    ];*/
     if (ConnectionManager().isAuthenticated) {
-      _showLoginButton = false;
+      //_showLoginButton = false;
       popupMenuItems.add(
           PopupMenuItem<String>(
             child: new Text("Logout"),
             value: "logout",
           ));
     }
-    if (_showLoginButton) {
+    Widget bodyWidget;
+    if (_userError != null) {
+      bodyWidget = UserErrorScreen(error: _userError);
+    } else if (empty) {
+      bodyWidget = Row(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          CircularProgressIndicator()
+        ],
+      );
+    } else {
+      bodyWidget = HomeAssistant().buildViews(context, _viewsTabController);
+    }
+    /*if (_showLoginButton) {
       emptyBody = [
         FlatButton(
           child: Text("Login with Home Assistant", style: TextStyle(fontSize: 16.0, color: Colors.white)),
@@ -833,7 +864,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           onPressed: () => _fullLoad(),
         )
       ];
-    }
+    }*/
     return NestedScrollView(
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
         return <Widget>[
@@ -869,7 +900,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                 _scaffoldKey.currentState.openDrawer();
               },
             ),
-            bottom: empty ? null : TabBar(
+            bottom: (empty || _userError != null) ? null : TabBar(
               controller: _viewsTabController,
               tabs: buildUIViewTabs(),
               isScrollable: true,
@@ -878,15 +909,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
         ];
       },
-      body: empty ?
-      Center(
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: emptyBody
-        ),
-      )
-          :
-      HomeAssistant().buildViews(context, _viewsTabController),
+      body: bodyWidget,
     );
   }
 

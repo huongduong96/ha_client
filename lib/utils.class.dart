@@ -45,7 +45,7 @@ class Logger {
 
 }
 
-class HAError {
+/*class HAError {
   String message;
   final List<HAErrorAction> actions;
 
@@ -87,7 +87,7 @@ class HAErrorActionType {
   static const LOGOUT = 2;
   static const URL = 3;
   static const OPEN_CONNECTION_SETTINGS = 4;
-}
+}*/
 
 class StateChangedEvent {
   String entityId;
@@ -112,14 +112,16 @@ class RefreshDataFinishedEvent {
 }
 
 class ReloadUIEvent {
-  ReloadUIEvent();
+  final bool full;
+
+  ReloadUIEvent(this.full);
 }
 
 class StartAuthEvent {
   String oauthUrl;
-  bool showButton;
+  bool starting;
 
-  StartAuthEvent(this.oauthUrl, this.showButton);
+  StartAuthEvent(this.oauthUrl, this.starting);
 }
 
 class ServiceCallEvent {
@@ -165,7 +167,7 @@ class ShowPageEvent {
 }
 
 class ShowErrorEvent {
-  final HAError error;
+  final UserError error;
 
   ShowErrorEvent(this.error);
 }

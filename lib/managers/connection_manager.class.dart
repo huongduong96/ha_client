@@ -40,6 +40,7 @@ class ConnectionManager {
     if (loadSettings) {
       Logger.e("Loading settings...");
       SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.reload();
       useLovelace = prefs.getBool('use-lovelace') ?? true;
       _domain = prefs.getString('hassio-domain');
       _port = prefs.getString('hassio-port');
@@ -51,14 +52,12 @@ class ConnectionManager {
       "${prefs.getString('hassio-res-protocol')}://$_domain:$_port";
       if ((_domain == null) || (_port == null) ||
           (_domain.isEmpty) || (_port.isEmpty)) {
-        completer.completeError(HAError.checkConnectionSettings());
+        completer.completeError(UserError(code: ErrorCode.NOT_CONFIGURED));
         stopInit = true;
       } else {
-        //_token = prefs.getString('hassio-token');
         final storage = new FlutterSecureStorage();
         try {
           _token = await storage.read(key: "hacl_llt");
-          Logger.e("Long-lived token read successful");
         } catch (e) {
           Logger.e("Cannt read secure storage. Need to relogin.");
           _token = null;
@@ -73,7 +72,7 @@ class ConnectionManager {
     } else {
       if ((_domain == null) || (_port == null) ||
           (_domain.isEmpty) || (_port.isEmpty)) {
-        completer.completeError(HAError.checkConnectionSettings());
+        completer.completeError(UserError(code: ErrorCode.NOT_CONFIGURED));
         stopInit = true;
       }
     }
@@ -101,7 +100,7 @@ class ConnectionManager {
     if (forceReconnect || !isConnected) {
       _connect().timeout(connectTimeout, onTimeout: () {
         _disconnect().then((_) {
-          completer?.completeError(HAError("Connection timeout"));
+          completer?.completeError(UserError(code: ErrorCode.CONNECTION_TIMEOUT));
         });
       }).then((_) {
         completer?.complete();
@@ -146,10 +145,11 @@ class ConnectionManager {
                 }
               } else if (data["type"] == "auth_invalid") {
                 Logger.d("[Received] <== ${data.toString()}");
-                _messageResolver["auth"]?.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
+                _messageResolver["auth"]?.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
                 _messageResolver.remove("auth");
+                //TODO dont logout, show variants to User
                 logout().then((_) {
-                  if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
+                  if (!connecting.isCompleted) connecting.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
                 });
               } else {
                 _handleMessage(data);
@@ -214,14 +214,14 @@ class ConnectionManager {
     Logger.d("Socket disconnected.");
     if (!connectionCompleter.isCompleted) {
       isConnected = false;
-      connectionCompleter.completeError(HAError("Disconnected", actions: [HAErrorAction.reconnect()]));
+      connectionCompleter.completeError(UserError(code: ErrorCode.DISCONNECTED));
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
             isConnected = false;
-            eventBus.fire(ShowErrorEvent(HAError("Unable to connect to Home Assistant")));
+            eventBus.fire(UserError(code: ErrorCode.UNABLE_TO_CONNECT));
           });
         });
       });
@@ -232,14 +232,14 @@ class ConnectionManager {
     Logger.e("Socket stream Error: $e");
     if (!connectionCompleter.isCompleted) {
       isConnected = false;
-      connectionCompleter.completeError(HAError("Unable to connect to Home Assistant"));
+      connectionCompleter.completeError(UserError(code: ErrorCode.UNABLE_TO_CONNECT));
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
             isConnected = false;
-            eventBus.fire(ShowErrorEvent(HAError("Unable to connect to Home Assistant")));
+            eventBus.fire(ShowErrorEvent(UserError(code: ErrorCode.UNABLE_TO_CONNECT)));
           });
         });
       });
@@ -275,7 +275,7 @@ class ConnectionManager {
         });
       }).catchError((e) => completer.completeError(e));
     } else {
-      completer.completeError(HAError("General login error"));
+      completer.completeError(UserError(code: ErrorCode.GENERAL_AUTH_ERROR));
     }
     return completer.future;
   }
@@ -309,8 +309,9 @@ class ConnectionManager {
         throw e;
       });
     }).catchError((e) {
+      //TODO dont logout, show variants
       logout();
-      completer.completeError(HAError("Authentication error: $e", actions: [HAErrorAction.loginAgain()]));
+      completer.completeError(UserError(code: ErrorCode.AUTH_ERROR, message: "$e"));
     });
     return completer.future;
   }
@@ -333,7 +334,7 @@ class ConnectionManager {
     String rawMessage = json.encode(dataObject);
     if (!isConnected) {
       _connect().timeout(connectTimeout, onTimeout: (){
-        _completer.completeError(HAError("No connection to Home Assistant", actions: [HAErrorAction.reconnect()]));
+        _completer.completeError(UserError(code: ErrorCode.UNABLE_TO_CONNECT));
       }).then((_) {
         Logger.d("[Sending] ==> ${auth ? "type="+dataObject['type'] : rawMessage}");
         _socket.sink.add(rawMessage);
