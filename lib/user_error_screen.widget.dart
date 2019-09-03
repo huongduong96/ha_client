@@ -162,8 +162,16 @@ class UserErrorScreen extends StatelessWidget {
         ));
         break;
       }
+      case ErrorCode.NO_MOBILE_APP_COMPONENT: {
+        errorText = "Looks like mobile_app component is not enabled on your Home Assistant instance. Please add it to your configuration.yaml";
+        buttons.add(RaisedButton(
+          onPressed: () => Launcher.launchURLInCustomTab(context: context, url: "https://www.home-assistant.io/components/mobile_app/"),
+          child: Text("Help"),
+        ));
+        break;
+      }
       default: {
-        errorText = "???";
+        errorText = "There was an error. Code ${this.error.code}";
         buttons.add(RaisedButton(
           onPressed: () => _reload(),
           child: Text("Reload"),

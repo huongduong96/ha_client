@@ -301,8 +301,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _subscribe().then((_) {
       ConnectionManager().init(loadSettings: true, forceReconnect: true).then((__){
         _fetchData();
-      }, onError: (code) {
-        _setErrorState(code);
+      }, onError: (error) {
+        _setErrorState(error);
       });
     });
   }
@@ -315,8 +315,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showInfoBottomBar(progress: true,);
     ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
       _fetchData();
-    }, onError: (code) {
-      _setErrorState(code);
+    }, onError: (error) {
+      _setErrorState(error);
     });
   }
 
@@ -460,10 +460,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   _setErrorState(error) {
     if (error is UserError) {
       setState(() {
+        _showBottomBar = false;
         _userError = error;
       });
     } else {
       setState(() {
+        _showBottomBar = false;
         _userError = UserError(code: ErrorCode.UNKNOWN);
       });
     }
