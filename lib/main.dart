@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:isolate';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,8 +21,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:android_alarm_manager/android_alarm_manager.dart';
-import 'package:geolocator/geolocator.dart';
 
 part 'const.dart';
 part 'utils/launcher.dart';
@@ -299,7 +295,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showInfoBottomBar(progress: true,);
     _subscribe().then((_) {
       ConnectionManager().init(loadSettings: true, forceReconnect: true).then((__){
-        LocationManager();
         _fetchData();
         StartupUserMessagesManager().checkMessagesToShow();
       }, onError: (e) {
@@ -312,7 +307,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
     ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
-      LocationManager().updateDeviceLocation();
       _fetchData();
       StartupUserMessagesManager().checkMessagesToShow();
     }, onError: (e) {
