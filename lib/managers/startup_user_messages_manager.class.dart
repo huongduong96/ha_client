@@ -11,16 +11,41 @@ class StartupUserMessagesManager {
 
   StartupUserMessagesManager._internal() {}
 
+  bool _locationTrackingMessageShown;
   bool _supportAppDevelopmentMessageShown;
+  static final _locationTrackingMessageKey = "user-message-shown-location_3";
   static final _supportAppDevelopmentMessageKey = "user-message-shown-support-development_3";
 
   void checkMessagesToShow() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.reload();
+    _locationTrackingMessageShown = prefs.getBool(_locationTrackingMessageKey) ?? false;
     _supportAppDevelopmentMessageShown = prefs.getBool(_supportAppDevelopmentMessageKey) ?? false;
-    if (!_supportAppDevelopmentMessageShown) {
+    if (!_locationTrackingMessageShown) {
+      _showLocationTrackingMessage();
+    } else if (!_supportAppDevelopmentMessageShown) {
       _showSupportAppDevelopmentMessage();
     }
+  }
+
+  void _showLocationTrackingMessage() {
+    eventBus.fire(ShowPopupDialogEvent(
+      title: "Device location tracking is here!",
+      body: "HA Client now support sending your device gps data to device_tracker instance created for current app integration. You can control location tracking in Configuration.",
+      positiveText: "Enable now",
+      negativeText: "Cancel",
+      onPositive: () {
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool(_locationTrackingMessageKey, true);
+          LocationManager().setSettings(true, 15);
+        });
+      },
+      onNegative: () {
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool(_locationTrackingMessageKey, true);
+        });
+      }
+    ));
   }
 
   void _showSupportAppDevelopmentMessage() {
