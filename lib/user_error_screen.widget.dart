@@ -75,6 +75,7 @@ class UserErrorScreen extends StatelessWidget {
         break;
       }
       case ErrorCode.GENERAL_AUTH_ERROR: {
+        errorText = "There was some error logging in. ${this.error.message ?? ""}";
         buttons.addAll(<Widget>[
           RaisedButton(
               onPressed: () => _reload(),
@@ -84,6 +85,22 @@ class UserErrorScreen extends StatelessWidget {
           RaisedButton(
             onPressed: () => _reLogin(),
             child: Text("Login again"),
+          )
+        ]
+        );
+        break;
+      }
+      case ErrorCode.SECURE_STORAGE_READ_ERROR: {
+        errorText = "There was an error reading secure storage. You can try again or clear saved auth data and login again.";
+        buttons.addAll(<Widget>[
+          RaisedButton(
+              onPressed: () => _reload(),
+              child: Text("Retry")
+          ),
+          Container(width: 15.0,),
+          RaisedButton(
+            onPressed: () => _reLogin(),
+            child: Text("Clear and login again"),
           )
         ]
         );

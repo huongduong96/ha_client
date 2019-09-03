@@ -120,4 +120,5 @@ class ErrorCode {
   static const GENERAL_AUTH_ERROR = 11;
   static const AUTH_ERROR = 12;
   static const NOT_LOGGED_IN = 13;
+  static const SECURE_STORAGE_READ_ERROR = 14;
 }

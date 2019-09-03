@@ -515,7 +515,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     );
   }
 
-  //TODO remove this shit
   void _callService(String domain, String service, String entityId, Map additionalParams) {
     _showInfoBottomBar(
       message: "Calling $domain.$service",

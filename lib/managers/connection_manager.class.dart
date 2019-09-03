@@ -58,16 +58,16 @@ class ConnectionManager {
         final storage = new FlutterSecureStorage();
         try {
           _token = await storage.read(key: "hacl_llt");
+          oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
+              'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
+              .encodeComponent(
+              'http://ha-client.homemade.systems/service/auth_callback.html')}";
+          settingsLoaded = true;
         } catch (e) {
           Logger.e("Cannt read secure storage. Need to relogin.");
-          _token = null;
-          await storage.delete(key: "hacl_llt");
+          completer.completeError(UserError(code: ErrorCode.SECURE_STORAGE_READ_ERROR));
+          stopInit = true;
         }
-        oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
-            'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
-            .encodeComponent(
-            'http://ha-client.homemade.systems/service/auth_callback.html')}";
-        settingsLoaded = true;
       }
     } else {
       if ((_domain == null) || (_port == null) ||
@@ -147,10 +147,7 @@ class ConnectionManager {
                 Logger.d("[Received] <== ${data.toString()}");
                 _messageResolver["auth"]?.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
                 _messageResolver.remove("auth");
-                //TODO dont logout, show variants to User
-                logout().then((_) {
-                  if (!connecting.isCompleted) connecting.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
-                });
+                if (!connecting.isCompleted) connecting.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
               } else {
                 _handleMessage(data);
               }
@@ -309,8 +306,6 @@ class ConnectionManager {
         throw e;
       });
     }).catchError((e) {
-      //TODO dont logout, show variants
-      logout();
       completer.completeError(UserError(code: ErrorCode.AUTH_ERROR, message: "$e"));
     });
     return completer.future;
