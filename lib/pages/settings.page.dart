@@ -74,6 +74,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   }
 
   _saveSettings() async {
+    _newHassioDomain = _newHassioDomain.trim();
     if (_newHassioDomain.indexOf("http") == 0 && _newHassioDomain.indexOf("//") > 0) {
       _newHassioDomain = _newHassioDomain.split("//")[1];
     }
@@ -81,6 +82,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storage = new FlutterSecureStorage();
     if (_newLongLivedToken.isNotEmpty) {
+      _newLongLivedToken = _newLongLivedToken.trim();
       prefs.setBool("oauth-used", false);
       await storage.write(key: "hacl_llt", value: _newLongLivedToken);
     } else if (!useOAuth) {
@@ -89,6 +91,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-domain", _newHassioDomain);
     if (_newHassioPort == null || _newHassioPort.isEmpty) {
       _newHassioPort = _newSocketProtocol == "wss" ? "443" : "80";
+    } else {
+      _newHassioPort = _newHassioPort.trim();
     }
     prefs.setString("hassio-port", _newHassioPort);
     prefs.setString("hassio-protocol", _newSocketProtocol);
