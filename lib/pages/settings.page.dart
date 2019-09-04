@@ -87,6 +87,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       await storage.delete(key: "hacl_llt");
     }
     prefs.setString("hassio-domain", _newHassioDomain);
+    if (_newHassioPort == null || _newHassioPort.isEmpty) {
+      _newHassioPort = _newSocketProtocol == "wss" ? "443" : "80";
+    }
     prefs.setString("hassio-port", _newHassioPort);
     prefs.setString("hassio-protocol", _newSocketProtocol);
     prefs.setString("hassio-res-protocol", _newSocketProtocol == "wss" ? "https" : "http");
