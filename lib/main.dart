@@ -308,7 +308,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showInfoBottomBar(progress: true,);
     ConnectionManager().init(loadSettings: false, forceReconnect: false).then((_){
       _fetchData();
-      StartupUserMessagesManager().checkMessagesToShow();
+      //StartupUserMessagesManager().checkMessagesToShow();
     }, onError: (e) {
       _setErrorState(e);
     });

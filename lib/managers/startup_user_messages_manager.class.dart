@@ -26,9 +26,9 @@ class StartupUserMessagesManager {
   void _showSupportAppDevelopmentMessage() {
     eventBus.fire(ShowPopupDialogEvent(
         title: "Hi!",
-        body: "As you may have noticed this app contains no ads. Also all app features are available for you for free. Following the principles of free and open source softwere this will not be changed in nearest future. But still you can support this application development materially. There is several options available, please check them in main menu -> Support app development. Thanks.",
-        positiveText: "Take me there",
-        negativeText: "Nope",
+        body: "As you may have noticed this app contains no ads. Also all app features are available for you for free. I'm not planning to change this in nearest future, but still you can support this application development materially. There is one-time payment available as well as several subscription options. Thanks.",
+        positiveText: "Show options",
+        negativeText: "Cancel",
         onPositive: () {
           SharedPreferences.getInstance().then((prefs) {
             prefs.setBool(_supportAppDevelopmentMessageKey, true);
