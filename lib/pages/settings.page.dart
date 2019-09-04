@@ -147,13 +147,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             decoration: InputDecoration(
               labelText: "Home Assistant domain or ip address"
             ),
-            controller: new TextEditingController.fromValue(
-                new TextEditingValue(
-                    text: _newHassioDomain,
-                    selection:
-                    new TextSelection.collapsed(offset: _newHassioDomain.length)
-                )
-            ),
+            controller: TextEditingController.fromValue(TextEditingValue(text: _newHassioDomain)),
             onChanged: (value) {
               _newHassioDomain = value;
             }
@@ -162,13 +156,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             decoration: InputDecoration(
               labelText: "Home Assistant port (default is 8123)"
             ),
-            controller: new TextEditingController.fromValue(
-                new TextEditingValue(
-                    text: _newHassioPort,
-                    selection:
-                    new TextSelection.collapsed(offset: _newHassioPort.length)
-                )
-            ),
+            controller: TextEditingController.fromValue(TextEditingValue(text: _newHassioPort)),
             onChanged: (value) {
               _newHassioPort = value;
             }
@@ -216,13 +204,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               decoration: InputDecoration(
                   labelText: "Long-lived token"
               ),
-              controller: new TextEditingController.fromValue(
-                  new TextEditingValue(
-                      text: _newLongLivedToken ?? '',
-                      selection:
-                      new TextSelection.collapsed(offset: _newLongLivedToken != null ? _newLongLivedToken.length : 0)
-                  )
-              ),
+              controller: TextEditingController.fromValue(TextEditingValue(text: _newLongLivedToken)),
               onChanged: (value) {
                 _newLongLivedToken = value;
               }

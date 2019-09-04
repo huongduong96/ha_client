@@ -73,13 +73,7 @@ class _TextInputStateWidgetState extends State<TextInputStateWidget> {
         child: TextField(
             focusNode: _focusNode,
             obscureText: entity.isPasswordField,
-            controller: new TextEditingController.fromValue(
-                new TextEditingValue(
-                    text: _tmpValue,
-                    selection:
-                    new TextSelection.collapsed(offset: _tmpValue.length)
-                )
-            ),
+            controller: TextEditingController.fromValue(TextEditingValue(text: _tmpValue)),
             onChanged: (value) {
               _tmpValue = value;
             }),
