@@ -95,7 +95,6 @@ part 'pages/panel.page.dart';
 part 'home_assistant.class.dart';
 part 'pages/log.page.dart';
 part 'pages/entity.page.dart';
-part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
 part 'managers/auth_manager.class.dart';
@@ -114,6 +113,9 @@ part 'ui_widgets/card_widget.dart';
 part 'ui_widgets/card_header_widget.dart';
 part 'panels/config_panel_widget.dart';
 part 'panels/widgets/link_to_web_config.dart';
+part 'utils/logger.dart';
+part 'types/ha_error.dart';
+part 'types/event_bus_events.dart';
 
 
 EventBus eventBus = new EventBus();
