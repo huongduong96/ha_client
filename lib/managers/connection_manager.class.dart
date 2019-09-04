@@ -40,7 +40,6 @@ class ConnectionManager {
     if (loadSettings) {
       Logger.e("Loading settings...");
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.reload();
       useLovelace = prefs.getBool('use-lovelace') ?? true;
       _domain = prefs.getString('hassio-domain');
       _port = prefs.getString('hassio-port');
@@ -52,27 +51,29 @@ class ConnectionManager {
       "${prefs.getString('hassio-res-protocol')}://$_domain:$_port";
       if ((_domain == null) || (_port == null) ||
           (_domain.isEmpty) || (_port.isEmpty)) {
-        completer.completeError(UserError(code: ErrorCode.NOT_CONFIGURED));
+        completer.completeError(HAError.checkConnectionSettings());
         stopInit = true;
       } else {
+        //_token = prefs.getString('hassio-token');
         final storage = new FlutterSecureStorage();
         try {
           _token = await storage.read(key: "hacl_llt");
-          oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
-              'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
-              .encodeComponent(
-              'http://ha-client.homemade.systems/service/auth_callback.html')}";
-          settingsLoaded = true;
+          Logger.e("Long-lived token read successful");
         } catch (e) {
           Logger.e("Cannt read secure storage. Need to relogin.");
-          completer.completeError(UserError(code: ErrorCode.SECURE_STORAGE_READ_ERROR));
-          stopInit = true;
+          _token = null;
+          await storage.delete(key: "hacl_llt");
         }
+        oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
+            'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
+            .encodeComponent(
+            'http://ha-client.homemade.systems/service/auth_callback.html')}";
+        settingsLoaded = true;
       }
     } else {
       if ((_domain == null) || (_port == null) ||
           (_domain.isEmpty) || (_port.isEmpty)) {
-        completer.completeError(UserError(code: ErrorCode.NOT_CONFIGURED));
+        completer.completeError(HAError.checkConnectionSettings());
         stopInit = true;
       }
     }
@@ -100,7 +101,7 @@ class ConnectionManager {
     if (forceReconnect || !isConnected) {
       _connect().timeout(connectTimeout, onTimeout: () {
         _disconnect().then((_) {
-          completer?.completeError(UserError(code: ErrorCode.CONNECTION_TIMEOUT));
+          completer?.completeError(HAError("Connection timeout"));
         });
       }).then((_) {
         completer?.complete();
@@ -145,9 +146,11 @@ class ConnectionManager {
                 }
               } else if (data["type"] == "auth_invalid") {
                 Logger.d("[Received] <== ${data.toString()}");
-                _messageResolver["auth"]?.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
+                _messageResolver["auth"]?.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
                 _messageResolver.remove("auth");
-                if (!connecting.isCompleted) connecting.completeError(UserError(code: ErrorCode.AUTH_INVALID, message: "${data["message"]}"));
+                logout().then((_) {
+                  if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
+                });
               } else {
                 _handleMessage(data);
               }
@@ -211,14 +214,14 @@ class ConnectionManager {
     Logger.d("Socket disconnected.");
     if (!connectionCompleter.isCompleted) {
       isConnected = false;
-      connectionCompleter.completeError(UserError(code: ErrorCode.DISCONNECTED));
+      connectionCompleter.completeError(HAError("Disconnected", actions: [HAErrorAction.reconnect()]));
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
             isConnected = false;
-            eventBus.fire(UserError(code: ErrorCode.UNABLE_TO_CONNECT));
+            eventBus.fire(ShowErrorEvent(HAError("Unable to connect to Home Assistant")));
           });
         });
       });
@@ -229,14 +232,14 @@ class ConnectionManager {
     Logger.e("Socket stream Error: $e");
     if (!connectionCompleter.isCompleted) {
       isConnected = false;
-      connectionCompleter.completeError(UserError(code: ErrorCode.UNABLE_TO_CONNECT));
+      connectionCompleter.completeError(HAError("Unable to connect to Home Assistant"));
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
             isConnected = false;
-            eventBus.fire(ShowErrorEvent(UserError(code: ErrorCode.UNABLE_TO_CONNECT)));
+            eventBus.fire(ShowErrorEvent(HAError("Unable to connect to Home Assistant")));
           });
         });
       });
@@ -272,7 +275,7 @@ class ConnectionManager {
         });
       }).catchError((e) => completer.completeError(e));
     } else {
-      completer.completeError(UserError(code: ErrorCode.GENERAL_AUTH_ERROR));
+      completer.completeError(HAError("General login error"));
     }
     return completer.future;
   }
@@ -306,7 +309,8 @@ class ConnectionManager {
         throw e;
       });
     }).catchError((e) {
-      completer.completeError(UserError(code: ErrorCode.AUTH_ERROR, message: "$e"));
+      logout();
+      completer.completeError(HAError("Authentication error: $e", actions: [HAErrorAction.loginAgain()]));
     });
     return completer.future;
   }
@@ -329,7 +333,7 @@ class ConnectionManager {
     String rawMessage = json.encode(dataObject);
     if (!isConnected) {
       _connect().timeout(connectTimeout, onTimeout: (){
-        _completer.completeError(UserError(code: ErrorCode.UNABLE_TO_CONNECT));
+        _completer.completeError(HAError("No connection to Home Assistant", actions: [HAErrorAction.reconnect()]));
       }).then((_) {
         Logger.d("[Sending] ==> ${auth ? "type="+dataObject['type'] : rawMessage}");
         _socket.sink.add(rawMessage);

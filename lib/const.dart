@@ -97,28 +97,3 @@ class CardType {
   static const alarmPanel = "alarm-panel";
   static const markdown = "markdown";
 }
-
-class UserError {
-  final int code;
-  final String message;
-
-  UserError({@required this.code, this.message: ""});
-}
-
-class ErrorCode {
-  static const UNKNOWN = 0;
-  static const NOT_CONFIGURED = 1;
-  static const AUTH_INVALID = 2;
-  static const NO_MOBILE_APP_COMPONENT = 3;
-  static const ERROR_GETTING_CONFIG = 4;
-  static const ERROR_GETTING_STATES = 5;
-  static const ERROR_GETTING_LOVELACE_CONFIG = 6;
-  static const ERROR_GETTING_PANELS = 7;
-  static const CONNECTION_TIMEOUT = 8;
-  static const DISCONNECTED = 9;
-  static const UNABLE_TO_CONNECT = 10;
-  static const GENERAL_AUTH_ERROR = 11;
-  static const AUTH_ERROR = 12;
-  static const NOT_LOGGED_IN = 13;
-  static const SECURE_STORAGE_READ_ERROR = 14;
-}

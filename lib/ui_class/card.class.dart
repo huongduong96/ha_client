@@ -29,11 +29,7 @@ class HACard {
     this.states,
     this.conditions: const [],
     @required this.type
-  }) {
-    if (this.columnsCount <= 0) {
-      this.columnsCount = 4;
-    }
-  }
+  });
 
   List<EntityWrapper> getEntitiesToShow() {
     return entities.where((entityWrapper) {
