@@ -77,16 +77,16 @@ class HAErrorAction {
 
   const HAErrorAction.reload({this.title = "Reload", this.type = HAErrorActionType.FULL_RELOAD, this.url});
 
-  const HAErrorAction.loginAgain({this.title = "Login again", this.type = HAErrorActionType.FULL_RELOAD, this.url});
+  const HAErrorAction.loginAgain({this.title = "Login again", this.type = HAErrorActionType.RELOGIN, this.url});
 
 }
 
 class HAErrorActionType {
   static const FULL_RELOAD = 0;
   static const QUICK_RELOAD = 1;
-  static const LOGOUT = 2;
   static const URL = 3;
   static const OPEN_CONNECTION_SETTINGS = 4;
+  static const RELOGIN = 5;
 }
 
 class StateChangedEvent {

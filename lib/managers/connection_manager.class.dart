@@ -54,21 +54,20 @@ class ConnectionManager {
         completer.completeError(HAError.checkConnectionSettings());
         stopInit = true;
       } else {
-        //_token = prefs.getString('hassio-token');
         final storage = new FlutterSecureStorage();
         try {
           _token = await storage.read(key: "hacl_llt");
           Logger.e("Long-lived token read successful");
+          oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
+              'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
+              .encodeComponent(
+              'http://ha-client.homemade.systems/service/auth_callback.html')}";
+          settingsLoaded = true;
         } catch (e) {
+          completer.completeError(HAError("Error reading login details", actions: [HAErrorAction.tryAgain(type: HAErrorActionType.FULL_RELOAD), HAErrorAction.loginAgain()]));
           Logger.e("Cannt read secure storage. Need to relogin.");
-          _token = null;
-          await storage.delete(key: "hacl_llt");
+          stopInit = true;
         }
-        oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
-            'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
-            .encodeComponent(
-            'http://ha-client.homemade.systems/service/auth_callback.html')}";
-        settingsLoaded = true;
       }
     } else {
       if ((_domain == null) || (_port == null) ||
@@ -148,9 +147,7 @@ class ConnectionManager {
                 Logger.d("[Received] <== ${data.toString()}");
                 _messageResolver["auth"]?.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
                 _messageResolver.remove("auth");
-                logout().then((_) {
-                  if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
-                });
+                if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.tryAgain(title: "Retry"), HAErrorAction.loginAgain(title: "Relogin")]));
               } else {
                 _handleMessage(data);
               }
@@ -281,6 +278,7 @@ class ConnectionManager {
   }
 
   Future logout() {
+    Logger.d("Logging out");
     Completer completer = Completer();
     _disconnect().whenComplete(() {
       _token = null;
@@ -309,8 +307,7 @@ class ConnectionManager {
         throw e;
       });
     }).catchError((e) {
-      logout();
-      completer.completeError(HAError("Authentication error: $e", actions: [HAErrorAction.loginAgain()]));
+      completer.completeError(HAError("Authentication error: $e", actions: [HAErrorAction.reload(title: "Retry"), HAErrorAction.loginAgain(title: "Relogin")]));
     });
     return completer.future;
   }

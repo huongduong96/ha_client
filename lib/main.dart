@@ -768,6 +768,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           break;
         }
 
+        case HAErrorActionType.RELOGIN: {
+          actions.add(FlatButton(
+            child: Text("${action.title}", style: textStyle),
+            onPressed: () {
+              ConnectionManager().logout().then((_) => _fullLoad());
+            },
+          ));
+          break;
+        }
+
         case HAErrorActionType.URL: {
           actions.add(FlatButton(
             child: Text("${action.title}", style: textStyle),
