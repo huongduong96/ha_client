@@ -1,10 +1,31 @@
 part of '../../main.dart';
 
-class UserErrorScreen extends StatelessWidget {
+class UserErrorActionButton extends StatelessWidget {
+
+  final onPressed;
+  final String text;
+
+  const UserErrorActionButton({Key key, this.onPressed, this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return RaisedButton(
+      onPressed: () => this.onPressed(),
+      color: Colors.blue,
+      child: Text(
+        "${this.text}",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+}
+
+class UserErrorPanel extends StatelessWidget {
 
   final UserError error;
 
-  const UserErrorScreen({Key key, this.error}) : super(key: key);
+  const UserErrorPanel({Key key, this.error}) : super(key: key);
 
   void _goToAppSettings(BuildContext context) {
     Navigator.pushNamed(context, '/connection-settings');
@@ -32,27 +53,26 @@ class UserErrorScreen extends StatelessWidget {
     switch (this.error.code) {
       case ErrorCode.AUTH_ERROR: {
         errorText = "There was an error logging in to Home Assistant";
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => _reload(),
-          child: Text("Retry"),
+          text: "Retry",
         ));
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => _reLogin(),
-          child: Text("Login again"),
+          text: "Login again",
         ));
         break;
       }
       case ErrorCode.UNABLE_TO_CONNECT: {
         errorText = "Unable to connect to Home Assistant";
         buttons.addAll(<Widget>[
-          RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _reload(),
-              child: Text("Retry")
+              text: "Retry"
           ),
-          Container(width: 15.0,),
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _goToAppSettings(context),
-            child: Text("Check application settings"),
+            text: "Check application settings",
           )
         ]
         );
@@ -61,14 +81,13 @@ class UserErrorScreen extends StatelessWidget {
       case ErrorCode.AUTH_INVALID: {
         errorText = "${error.message ?? "Can't login to Home Assistant"}";
         buttons.addAll(<Widget>[
-          RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _reload(),
-              child: Text("Retry")
+              text: "Retry"
           ),
-          Container(width: 15.0,),
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _reLogin(),
-            child: Text("Login again"),
+            text: "Login again",
           )
         ]
         );
@@ -77,14 +96,13 @@ class UserErrorScreen extends StatelessWidget {
       case ErrorCode.GENERAL_AUTH_ERROR: {
         errorText = "There was some error logging in. ${this.error.message ?? ""}";
         buttons.addAll(<Widget>[
-          RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _reload(),
-              child: Text("Retry")
+              text: "Retry"
           ),
-          Container(width: 15.0,),
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _reLogin(),
-            child: Text("Login again"),
+            text: "Login again",
           )
         ]
         );
@@ -93,14 +111,13 @@ class UserErrorScreen extends StatelessWidget {
       case ErrorCode.SECURE_STORAGE_READ_ERROR: {
         errorText = "There was an error reading secure storage. You can try again or clear saved auth data and login again.";
         buttons.addAll(<Widget>[
-          RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _reload(),
-              child: Text("Retry")
+              text: "Retry"
           ),
-          Container(width: 15.0,),
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _reLogin(),
-            child: Text("Clear and login again"),
+            text: "Clear and login again",
           )
         ]
         );
@@ -109,14 +126,13 @@ class UserErrorScreen extends StatelessWidget {
       case ErrorCode.DISCONNECTED: {
         errorText = "Disconnected";
         buttons.addAll(<Widget>[
-          RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _reload(),
-              child: Text("Reconnect")
+              text: "Reconnect"
           ),
-          Container(width: 15.0,),
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _goToAppSettings(context),
-            child: Text("Check application settings"),
+            text: "Check application settings",
           )
         ]
         );
@@ -125,14 +141,13 @@ class UserErrorScreen extends StatelessWidget {
       case ErrorCode.CONNECTION_TIMEOUT: {
         errorText = "Connection timeout";
         buttons.addAll(<Widget>[
-            RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _reload(),
-              child: Text("Reconnect")
+              text: "Reconnect"
             ),
-            Container(width: 15.0,),
-            RaisedButton(
+          UserErrorActionButton(
               onPressed: () => _goToAppSettings(context),
-              child: Text("Check application settings"),
+              text: "Check application settings",
             )
           ]
         );
@@ -140,9 +155,9 @@ class UserErrorScreen extends StatelessWidget {
       }
       case ErrorCode.NOT_CONFIGURED: {
         errorText = "Looks like HA Client is not configured yet.";
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => _goToAppSettings(context),
-          child: Text("Open application settings"),
+          text: "Open application settings",
         ));
         break;
       }
@@ -150,90 +165,78 @@ class UserErrorScreen extends StatelessWidget {
       case ErrorCode.ERROR_GETTING_CONFIG:
       case ErrorCode.ERROR_GETTING_STATES: {
         errorText = "Couldn't get data from Home Assistant. ${error.message ?? ""}";
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => _reload(),
-          child: Text("Try again"),
+          text: "Try again",
         ));
         break;
       }
       case ErrorCode.ERROR_GETTING_LOVELACE_CONFIG: {
         errorText = "Couldn't get Lovelace UI config. You can try to disable it and use group-based UI istead.";
         buttons.addAll(<Widget>[
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _reload(),
-            child: Text("Retry"),
+            text: "Retry",
           ),
-          Container(width: 15.0,),
-          RaisedButton(
+          UserErrorActionButton(
             onPressed: () => _disableLovelace(),
-            child: Text("Disable Lovelace UI"),
+            text: "Disable Lovelace UI",
           )
         ]);
         break;
       }
       case ErrorCode.NOT_LOGGED_IN: {
         errorText = "You are not logged in yet. Please login.";
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => _reload(),
-          child: Text("Login"),
+          text: "Login",
         ));
         break;
       }
       case ErrorCode.NO_MOBILE_APP_COMPONENT: {
         errorText = "Looks like mobile_app component is not enabled on your Home Assistant instance. Please add it to your configuration.yaml";
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => Launcher.launchURLInCustomTab(context: context, url: "https://www.home-assistant.io/components/mobile_app/"),
-          child: Text("Help"),
+          text: "Help",
         ));
         break;
       }
       default: {
         errorText = "There was an error. Code ${this.error.code}";
-        buttons.add(RaisedButton(
+        buttons.add(UserErrorActionButton(
           onPressed: () => _reload(),
-          child: Text("Reload"),
+          text: "Reload",
         ));
       }
     }
-
-    return Padding(
-      padding: EdgeInsets.only(left: Sizes.leftWidgetPadding, right: Sizes.rightWidgetPadding),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Flexible(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                    padding: EdgeInsets.only(top: 100.0, bottom: 20.0),
-                    child: Icon(
-                        Icons.error,
-                        color: Colors.redAccent,
-                        size: 48.0
-                    )
-                ),
-                Text(
-                  errorText,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.black45, fontSize: Sizes.largeFontSize),
-                  softWrap: true,
-                  maxLines: 5,
-                ),
-                Container(height: Sizes.rowPadding,),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: buttons.isNotEmpty ? buttons : Container(height: 0.0, width: 0.0,),
-                )
-              ],
-            ),
-          )
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Divider(
+          color: Colors.deepOrange,
+          height: 1.0,
+          indent: 8.0,
+          endIndent: 8.0,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(8.0, 14.0, 8.0, 0.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              Text(
+                errorText,
+                textAlign: TextAlign.start,
+                style: TextStyle(color: Colors.black87, fontSize: 18.0),
+                softWrap: true,
+                maxLines: 3,
+              )
+            ],
+          ),
+        ),
+        ButtonBar(
+          children: buttons,
+        )
+      ],
     );
   }
 }

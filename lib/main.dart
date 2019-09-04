@@ -118,7 +118,7 @@ part 'ui_widgets/card_widget.dart';
 part 'ui_widgets/card_header_widget.dart';
 part 'panels/config_panel_widget.dart';
 part 'panels/widgets/link_to_web_config.dart';
-part 'pages/widgets/user_error_screen.widget.dart';
+part 'pages/widgets/user_error_panel.widget.dart';
 
 
 EventBus eventBus = new EventBus();

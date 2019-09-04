@@ -385,7 +385,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   Widget build(BuildContext context) {
     Widget bottomBar;
     if (_userError != null) {
-      bottomBar = UserErrorScreen(error: _userError,);
+      bottomBar = UserErrorPanel(error: _userError,);
       /*List<Widget> bottomBarChildren = [];
       if (_bottomBarText != null) {
         bottomBarChildren.add(
